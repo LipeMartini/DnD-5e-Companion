@@ -5,6 +5,7 @@ from .stats import Stats
 from .race import Race, RaceDatabase
 from .subrace import Subrace, SubraceDatabase
 from .character_class import CharacterClass, ClassDatabase
+from .background import Background, BackgroundDatabase
 from .dice import DiceRoller
 
 @dataclass
@@ -14,7 +15,7 @@ class Character:
     subrace: Optional[Subrace] = None
     character_class: Optional[CharacterClass] = None
     level: int = 1
-    background: str = ""
+    background: Optional[Background] = None
     alignment: str = "Neutral"
     experience_points: int = 0
     
@@ -106,6 +107,11 @@ class Character:
             con_modifier = self.stats.get_modifier('constitution')
             self.max_hit_points = self.character_class.hit_die + con_modifier
             self.current_hit_points = self.max_hit_points
+
+    def set_background(self, background_name: str):
+        """Define o background do personagem"""
+        self.background = BackgroundDatabase.get_all_backgrounds().get(background_name)
+        self.update_derived_stats()
     
     def roll_initiative(self) -> tuple[int, int]:
         """Rola iniciativa"""
@@ -153,7 +159,7 @@ class Character:
             'subrace': self.subrace.to_dict() if self.subrace else None,
             'character_class': self.character_class.to_dict() if self.character_class else None,
             'level': self.level,
-            'background': self.background,
+            'background': self.background.to_dict() if self.background else None,
             'alignment': self.alignment,
             'experience_points': self.experience_points,
             'stats': self.stats.to_dict(),
@@ -178,7 +184,6 @@ class Character:
         char = cls()
         char.name = data.get('name', '')
         char.level = data.get('level', 1)
-        char.background = data.get('background', '')
         char.alignment = data.get('alignment', 'Neutral')
         char.experience_points = data.get('experience_points', 0)
         
@@ -193,6 +198,9 @@ class Character:
 
         if data.get('subrace'):
             char.subrace = Subrace.from_dict(data['subrace'])
+        
+        if data.get('background'):
+            char.background = Background.from_dict(data['background'])
         
         if data.get('character_class'):
             char.character_class = CharacterClass.from_dict(data['character_class'])

@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
                              QLineEdit, QComboBox, QSpinBox, QPushButton, 
                              QGroupBox, QLabel, QListWidget, QMessageBox, QScrollArea)
 from PyQt6.QtCore import pyqtSignal
-from models import Character, RaceDatabase, SubraceDatabase, ClassDatabase, DiceRoller
+from models import Character, RaceDatabase, SubraceDatabase, ClassDatabase, BackgroundDatabase, DiceRoller
 
 class CharacterCreationTab(QWidget):
     character_updated = pyqtSignal()
@@ -46,6 +46,12 @@ class CharacterCreationTab(QWidget):
         self.class_combo.addItems(classes)
         self.class_combo.currentTextChanged.connect(self.on_class_changed)
         basic_layout.addRow("Classe:", self.class_combo)
+
+        self.background_combo = QComboBox()
+        backgrounds = list(BackgroundDatabase.get_all_backgrounds().keys())
+        self.background_combo.addItems(backgrounds)
+        self.background_combo.currentTextChanged.connect(self.on_background_changed)
+        basic_layout.addRow("Antecedente:", self.background_combo)
         
         self.level_spin = QSpinBox()
         self.level_spin.setMinimum(1)
@@ -53,10 +59,6 @@ class CharacterCreationTab(QWidget):
         self.level_spin.setValue(1)
         self.level_spin.valueChanged.connect(self.update_character)
         basic_layout.addRow("Nível:", self.level_spin)
-        
-        self.background_input = QLineEdit()
-        self.background_input.textChanged.connect(self.update_character)
-        basic_layout.addRow("Antecedente:", self.background_input)
         
         self.alignment_combo = QComboBox()
         alignments = ["Lawful Good", "Neutral Good", "Chaotic Good",
@@ -137,6 +139,11 @@ class CharacterCreationTab(QWidget):
         self.subrace_skills_list.setVisible(False)
         self.subrace_skills_list.itemSelectionChanged.connect(self.update_character)
         skills_layout.addWidget(self.subrace_skills_list)
+
+        self.background_skills_info = QLabel("Perícias do Antecedente: Nenhum")
+        self.background_skills_info.setStyleSheet("font-weight: bold; color: #2E7D32; padding: 5px;")
+        self.background_skills_info.setWordWrap(True)
+        skills_layout.addWidget(self.background_skills_info)
         
         skills_group.setLayout(skills_layout)
         layout.addWidget(skills_group)
@@ -197,6 +204,12 @@ class CharacterCreationTab(QWidget):
             self.update_skills_list()
             self.character_updated.emit()
     
+    def on_background_changed(self, background_name: str):
+        if background_name:
+            self.character.set_background(background_name)
+            self.update_skills_list()
+            self.character_updated.emit()
+    
     def update_skills_list(self):
         # Atualizar perícias da classe
         self.skills_list.clear()
@@ -233,6 +246,15 @@ class CharacterCreationTab(QWidget):
             # Esconder lista de perícias da subraça
             self.subrace_skills_label.setVisible(False)
             self.subrace_skills_list.setVisible(False)
+        
+        # Atualizar informação de perícias do background
+        if self.character.background:
+            bg_skills = ", ".join(self.character.background.skill_proficiencies)
+            self.background_skills_info.setText(
+                f"✓ Perícias do Antecedente ({self.character.background.name}): {bg_skills}"
+            )
+        else:
+            self.background_skills_info.setText("Perícias do Antecedente: Nenhum")
     
     def update_stats_display(self):
         for stat_name, widgets in self.stat_inputs.items():
@@ -244,7 +266,6 @@ class CharacterCreationTab(QWidget):
     def update_character(self):
         self.character.name = self.name_input.text()
         self.character.level = self.level_spin.value()
-        self.character.background = self.background_input.text()
         self.character.alignment = self.alignment_combo.currentText()
         
         for stat_name, widgets in self.stat_inputs.items():
@@ -277,8 +298,13 @@ class CharacterCreationTab(QWidget):
                 )
                 return
         
-        # Combinar perícias de classe e subraça
-        self.character.skill_proficiencies = selected_class_skills + selected_subrace_skills
+        # Adicionar perícias do background (automáticas)
+        background_skills = []
+        if self.character.background:
+            background_skills = self.character.background.skill_proficiencies.copy()
+        
+        # Combinar perícias de classe, subraça e background
+        self.character.skill_proficiencies = selected_class_skills + selected_subrace_skills + background_skills
         
         self.update_stats_display()
         self.character.update_derived_stats()
@@ -289,7 +315,11 @@ class CharacterCreationTab(QWidget):
         
         self.name_input.setText(character.name)
         self.level_spin.setValue(character.level)
-        self.background_input.setText(character.background)
+        
+        if character.background:
+            index = self.background_combo.findText(character.background.name)
+            if index >= 0:
+                self.background_combo.setCurrentIndex(index)
         
         if character.alignment:
             index = self.alignment_combo.findText(character.alignment)
