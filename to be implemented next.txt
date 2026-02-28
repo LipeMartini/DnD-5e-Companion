@@ -1,0 +1,69 @@
+Primeiro: Sistema de HP dinâmico (você vai aprender sobre eventos, atualização de UI)
+Segundo: Equipamento básico (trabalhar com listas, CRUD simples)
+Terceiro: Sistema de XP e Level Up (lógica de negócio mais complexa)
+Quarto: Ataques e armas (integração com sistema de dados)
+Quinto: Sistema de magias (banco de dados maior, filtros, busca)
+
+
+Básico:
+0. Sistema de Subraças
+1. Sistema de Pontos de Vida Dinâmico
+	Botões para adicionar/remover HP na ficha
+	Gerenciamento de HP temporário
+	Indicador visual de HP baixo (mudança de cor)
+	Histórico de dano recebido
+2. Equipamento e Inventário Básico
+	Lista de itens carregados
+	Peso total e capacidade de carga (baseado em Força)
+	Gerenciamento de moedas (PP, PO, PE, PC, PL)
+	Adicionar/remover itens
+3. Sistema de Experiência e Level Up
+	Adicionar XP manualmente
+	Botão de "Subir de Nível" que:
+		. Rola HP automaticamente
+		. Atualiza bônus de proficiência
+		. Mostra o que mudou
+4. Notas e Biografia do Personagem
+	Campo de texto para história/background
+	Notas de sessão
+	Objetivos e motivações
+	Aparência física
+
+Nível Intermediário:
+5. Sistema de Magias (para classes conjuradoras)
+	Banco de dados de magias por nível
+	Espaços de magia por nível
+	Magias preparadas vs conhecidas
+	CD de magia e bônus de ataque mágico
+6. Ataques e Armas
+	Lista de armas equipadas
+	Cálculo automático de bônus de ataque
+	Rolagem de dano com tipo de dado específico
+	Propriedades de armas (alcance, versatilidade, etc.)
+7. Condições e Status
+	Checkboxes para condições (envenenado, paralisado, etc.)
+	Efeitos das condições nas rolagens
+	Vantagem/Desvantagem em rolagens
+8. Importação/Exportação Avançada
+	Exportar ficha para PDF
+	Importar de outros formatos
+	Compartilhar ficha via JSON formatado
+
+Nível Avançado:
+9. Sistema de Combate Local
+	Tracker de iniciativa para múltiplos personagens
+	Gerenciamento de turnos
+	Contador de rodadas
+	HP de múltiplas criaturas
+10. Gerador de NPCs/Monstros
+	Criar fichas simplificadas de monstros
+	Importar do Manual dos Monstros (dados em JSON)
+	Ajuste de CR (Challenge Rating)
+11. Sistema de Descanso
+	Descanso curto (recuperar dados de vida)
+	Descanso longo (recuperar HP e magias)
+	Gerenciamento automático de recursos
+12. Gráficos e Estatísticas
+	Visualização de distribuição de atributos
+	Histórico de rolagens (gráfico)
+	Estatísticas de combate
