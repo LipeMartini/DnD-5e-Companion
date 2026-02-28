@@ -34,6 +34,13 @@ class SubraceDatabase:
     @staticmethod
     def get_all_subraces() -> Dict[str, Subrace]:
         return {
+            'None': Subrace(
+                name='None',
+                parent_race='None',
+                ability_bonuses={},
+                traits=[],
+                skill_proficiencies_count=0
+            ),
             'Dark Elf': Subrace(
                 name='Dark Elf',
                 parent_race='Elf',

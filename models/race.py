@@ -85,7 +85,7 @@ class RaceDatabase:
                 speed=30,
                 size='Medium',
                 languages=['Common', 'Elvish', 'One extra language'],
-                traits=['Darkvision', 'Fey Ancestry', 'Skill Versatility']
+                traits=['Darkvision', 'Fey Ancestry']
             ),
             'Half-Orc': Race(
                 name='Half-Orc',

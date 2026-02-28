@@ -128,6 +128,16 @@ class CharacterCreationTab(QWidget):
         self.skills_list.itemSelectionChanged.connect(self.update_character)
         skills_layout.addWidget(self.skills_list)
         
+        self.subrace_skills_label = QLabel("Perícias da Subraça:")
+        self.subrace_skills_label.setVisible(False)
+        skills_layout.addWidget(self.subrace_skills_label)
+        
+        self.subrace_skills_list = QListWidget()
+        self.subrace_skills_list.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
+        self.subrace_skills_list.setVisible(False)
+        self.subrace_skills_list.itemSelectionChanged.connect(self.update_character)
+        skills_layout.addWidget(self.subrace_skills_list)
+        
         skills_group.setLayout(skills_layout)
         layout.addWidget(skills_group)
         
@@ -165,7 +175,7 @@ class CharacterCreationTab(QWidget):
     def on_race_changed(self, race_name: str):
         if race_name:
             self.character.set_race(race_name)
-
+            self.character.set_subrace('None')
             # Atualizar subraças disponíveis
             self.subrace_combo.clear()
             subraces = SubraceDatabase.get_subraces_for_race(race_name)
@@ -178,6 +188,7 @@ class CharacterCreationTab(QWidget):
         if subrace_name:
             self.character.set_subrace(subrace_name)
             self.update_stats_display()
+            self.update_skills_list()
             self.character_updated.emit()
     
     def on_class_changed(self, class_name: str):
@@ -187,6 +198,7 @@ class CharacterCreationTab(QWidget):
             self.character_updated.emit()
     
     def update_skills_list(self):
+        # Atualizar perícias da classe
         self.skills_list.clear()
         if self.character.character_class:
             available_skills = self.character.character_class.available_skills
@@ -194,8 +206,33 @@ class CharacterCreationTab(QWidget):
             
             max_skills = self.character.character_class.skill_proficiencies_count
             self.available_skills_label.setText(
-                f"Selecione {max_skills} perícias:"
+                f"Selecione {max_skills} perícias da classe:"
             )
+        
+        # Atualizar perícias da subraça (se houver)
+        self.subrace_skills_list.clear()
+        if self.character.subrace and self.character.subrace.skill_proficiencies_count > 0:
+            # Mostrar lista de perícias da subraça
+            self.subrace_skills_label.setVisible(True)
+            self.subrace_skills_list.setVisible(True)
+            
+            # Lista completa de todas as perícias disponíveis
+            all_skills = [
+                'Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception',
+                'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine',
+                'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion',
+                'Sleight of Hand', 'Stealth', 'Survival'
+            ]
+            self.subrace_skills_list.addItems(all_skills)
+            
+            subrace_max = self.character.subrace.skill_proficiencies_count
+            self.subrace_skills_label.setText(
+                f"Selecione {subrace_max} perícias da subraça ({self.character.subrace.name}):"
+            )
+        else:
+            # Esconder lista de perícias da subraça
+            self.subrace_skills_label.setVisible(False)
+            self.subrace_skills_list.setVisible(False)
     
     def update_stats_display(self):
         for stat_name, widgets in self.stat_inputs.items():
@@ -216,18 +253,32 @@ class CharacterCreationTab(QWidget):
         
         self.character.recalculate_stats()
         
-        selected_skills = [item.text() for item in self.skills_list.selectedItems()]
+        # Validar perícias da classe
+        selected_class_skills = [item.text() for item in self.skills_list.selectedItems()]
         if self.character.character_class:
             max_skills = self.character.character_class.skill_proficiencies_count
-            if len(selected_skills) > max_skills:
+            if len(selected_class_skills) > max_skills:
                 QMessageBox.warning(
                     self,
                     "Aviso",
-                    f"Você pode selecionar no máximo {max_skills} perícias para esta classe."
+                    f"Você pode selecionar no máximo {max_skills} perícias da classe."
                 )
                 return
         
-        self.character.skill_proficiencies = selected_skills
+        # Validar perícias da subraça
+        selected_subrace_skills = [item.text() for item in self.subrace_skills_list.selectedItems()]
+        if self.character.subrace and self.character.subrace.skill_proficiencies_count > 0:
+            max_subrace_skills = self.character.subrace.skill_proficiencies_count
+            if len(selected_subrace_skills) > max_subrace_skills:
+                QMessageBox.warning(
+                    self,
+                    "Aviso",
+                    f"Você pode selecionar no máximo {max_subrace_skills} perícias da subraça."
+                )
+                return
+        
+        # Combinar perícias de classe e subraça
+        self.character.skill_proficiencies = selected_class_skills + selected_subrace_skills
         
         self.update_stats_display()
         self.character.update_derived_stats()
@@ -255,6 +306,11 @@ class CharacterCreationTab(QWidget):
             if index >= 0:
                 self.class_combo.setCurrentIndex(index)
         
+        if character.subrace:
+            index = self.subrace_combo.findText(character.subrace.name)
+            if index >= 0:
+                self.subrace_combo.setCurrentIndex(index)
+        
         for stat_name, widgets in self.stat_inputs.items():
             value = getattr(character.stats, stat_name)
             widgets['spin'].setValue(value)
@@ -262,7 +318,15 @@ class CharacterCreationTab(QWidget):
         self.update_stats_display()
         self.update_skills_list()
         
+        # Restaurar seleção de perícias da classe
         for i in range(self.skills_list.count()):
             item = self.skills_list.item(i)
             if item.text() in character.skill_proficiencies:
                 item.setSelected(True)
+        
+        # Restaurar seleção de perícias da subraça
+        for i in range(self.subrace_skills_list.count()):
+            item = self.subrace_skills_list.item(i)
+            if item.text() in character.skill_proficiencies:
+                item.setSelected(True)
+        
