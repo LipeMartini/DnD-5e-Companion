@@ -49,6 +49,9 @@ class Character:
     # Sistema de magias
     spellcasting: Optional[SpellcastingInfo] = None
     
+    # Fighting Styles (pode ter múltiplos via feats ou multiclasse)
+    fighting_styles: List[str] = field(default_factory=list)
+    
     def __post_init__(self):
         self.update_derived_stats()
     
@@ -480,6 +483,18 @@ class Character:
         
         return "Descrição não disponível."
     
+    def has_fighting_style(self, style_name: str) -> bool:
+        """
+        Verifica se o personagem tem um Fighting Style específico
+        
+        Args:
+            style_name: Nome do Fighting Style
+            
+        Returns:
+            True se o personagem tem o estilo, False caso contrário
+        """
+        return style_name in self.fighting_styles
+    
     def to_dict(self) -> dict:
         """Converte personagem para dicionário (para salvar)"""
         return {
@@ -510,6 +525,7 @@ class Character:
             'equipment': self.equipment,
             'inventory': self.inventory.to_dict(),
             'spellcasting': self.spellcasting.to_dict() if self.spellcasting else None,
+            'fighting_styles': self.fighting_styles,
         }
     
     @classmethod
@@ -560,6 +576,8 @@ class Character:
         
         if data.get('spellcasting'):
             char.spellcasting = SpellcastingInfo.from_dict(data['spellcasting'])
+        
+        char.fighting_styles = data.get('fighting_styles', [])
         
         return char
     

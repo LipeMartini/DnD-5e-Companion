@@ -1,7 +1,6 @@
 CHECK --- Primeiro: Sistema de HP dinâmico (você vai aprender sobre eventos, atualização de UI)
 CHECK --- Primeiro-2: Hover tips (dar um hover com o mouse e aparecer uma tip que explica o que faz cada feature, principalmente para traços e características)
 CHECK --- Segundo: Equipamento básico (trabalhar com listas, CRUD simples)
-
 In Progress --- Terceiro: Sistema de XP e Level Up (lógica de negócio mais complexa)
 CHECK --- Quarto: Ataques e armas (integração com sistema de dados)
 In Progress --- Quinto: Sistema de magias (banco de dados maior, filtros, busca)
@@ -12,18 +11,19 @@ In Progress --- Quinto: Sistema de magias (banco de dados maior, filtros, busca)
 
 
 Básico:
-0. Sistema de Subraças - CHECK
-1. Sistema de Pontos de Vida Dinâmico - CHECK
+0. Sistema de Subraças 							- CHECK
+
+1. Sistema de Pontos de Vida Dinâmico 					- CHECK
 	Botões para adicionar/remover HP na ficha
 	Gerenciamento de HP temporário
 	Indicador visual de HP baixo (mudança de cor)
 	Histórico de dano recebido
-2. Equipamento e Inventário Básico - CHECK
+2. Equipamento e Inventário Básico 					- CHECK
 	Lista de itens carregados
 	Peso total e capacidade de carga (baseado em Força)
 	Gerenciamento de moedas (PP, PO, PE, PC, PL)
 	Adicionar/remover itens
-3. Sistema de Experiência e Level Up das Classes
+3. Sistema de Experiência e Level Up das Classes			- In Progress
 	Adicionar XP manualmente
 	Botão de "Subir de Nível" que:
 		. Rola HP automaticamente
@@ -42,12 +42,12 @@ Básico:
 	Aparência física
 
 Nível Intermediário:
-5. Sistema de Magias (para classes conjuradoras)
+5. Sistema de Magias (para classes conjuradoras)			- In Progress
 	Banco de dados de magias por nível
 	Espaços de magia por nível
 	Magias preparadas vs conhecidas
 	CD de magia e bônus de ataque mágico
-6. Ataques e Armas - CHECK
+6. Ataques e Armas 							- CHECK
 	Lista de armas equipadas
 	Cálculo automático de bônus de ataque
 	Rolagem de dano com tipo de dado específico

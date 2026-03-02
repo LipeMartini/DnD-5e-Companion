@@ -79,6 +79,10 @@ class MainWindow(QMainWindow):
             self.character = dialog.get_character()
             self.sheet_tab.set_character(self.character)
             self.on_character_updated()
+            
+            # Verificar se precisa escolher Fighting Style (Fighter nível 1)
+            self.sheet_tab.check_and_select_fighting_style(self.character.level)
+            
             QMessageBox.information(
                 self,
                 "Personagem Criado!",

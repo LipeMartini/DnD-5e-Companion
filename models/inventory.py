@@ -98,6 +98,10 @@ class Inventory:
             if shield:
                 ac += shield.base_ac + shield.magical_bonus
             
+            # Adiciona bônus de Defense Fighting Style (+1 CA quando usar armadura)
+            if armor and character.has_fighting_style("Defense"):
+                ac += 1
+            
             return ac
         
         elif self.ac_calculation_method == self.AC_UNARMORED_BARBARIAN:

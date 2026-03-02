@@ -320,6 +320,13 @@ class CharacterCreationDialog(QDialog):
         # Combinar todas as perícias
         self.character.skill_proficiencies = selected_class_skills + selected_subrace_skills + background_skills
         
+        # Adicionar class features do nível 1
+        if self.character.character_class:
+            self.character.add_class_features(
+                self.character.character_class.name,
+                1
+            )
+        
         self.character.update_derived_stats()
         
         # Sucesso!

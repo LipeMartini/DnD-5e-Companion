@@ -7,6 +7,7 @@ from models import Character
 from .dice_history_window import DiceHistoryWindow
 from .inventory_window import InventoryWindow
 from .advanced_edit_window import AdvancedEditWindow
+from .fighting_style_dialog import FightingStyleDialog
 
 class CharacterSheetTab(QWidget):
     character_updated = pyqtSignal()
@@ -1198,6 +1199,51 @@ class CharacterSheetTab(QWidget):
             if child.widget():
                 child.widget().deleteLater()
         
+        # Adiciona Fighting Styles se existirem
+        if self.character.fighting_styles:
+            from models.fighting_styles import get_fighting_style
+            
+            for style_name in self.character.fighting_styles:
+                style = get_fighting_style(style_name)
+                if style:
+                    fighting_style_layout = QHBoxLayout()
+                    fighting_style_layout.setContentsMargins(0, 0, 0, 0)
+                    fighting_style_layout.setSpacing(5)
+                    
+                    # Label do Fighting Style com destaque
+                    style_label = QLabel(f"⚔️ Fighting Style: {style.name}")
+                    style_label.setFont(QFont("Georgia", 10, QFont.Weight.Bold))
+                    style_label.setStyleSheet("background-color: transparent; color: #8B4513;")
+                    fighting_style_layout.addWidget(style_label)
+                    
+                    fighting_style_layout.addStretch()
+                    
+                    # Ícone informativo com tooltip
+                    info_icon = QLabel("ℹ️")
+                    info_icon.setFont(QFont("Georgia", 10))
+                    info_icon.setStyleSheet("""
+                        background-color: transparent; 
+                        color: #4A90E2;
+                        padding: 2px;
+                    """)
+                    info_icon.setCursor(Qt.CursorShape.WhatsThisCursor)
+                    info_icon.setToolTip(f"<b>{style.name}</b><br><br>{style.description}<br><br><i>{style.mechanical_effect}</i>")
+                    
+                    fighting_style_layout.addWidget(info_icon)
+                    
+                    # Container para o layout
+                    style_widget = QWidget()
+                    style_widget.setLayout(fighting_style_layout)
+                    style_widget.setStyleSheet("background-color: transparent;")
+                    
+                    self.features_container_layout.addWidget(style_widget)
+            
+            # Adiciona separador após todos os Fighting Styles
+            separator = QFrame()
+            separator.setFrameShape(QFrame.Shape.HLine)
+            separator.setStyleSheet("background-color: #D2B48C; max-height: 1px;")
+            self.features_container_layout.addWidget(separator)
+        
         if not self.character.class_features:
             no_features = QLabel("Nenhuma feature")
             no_features.setStyleSheet("color: #999; font-style: italic; padding: 5px;")
@@ -1470,10 +1516,53 @@ class CharacterSheetTab(QWidget):
         attack_bonus = weapon.get_attack_bonus(self.character)
         damage_bonus = weapon.get_damage_bonus(self.character)
         
-        info_label = QLabel(f"Atq {'+' if attack_bonus >= 0 else ''}{attack_bonus}  |  Dano {weapon.damage_dice}{'+' if damage_bonus >= 0 else ''}{damage_bonus}")
+        # Função para atualizar o label de dano dinamicamente
+        def update_damage_label():
+            dueling_active = False
+            if hasattr(weapon, 'dueling_checkbox') and weapon.dueling_checkbox.isChecked():
+                dueling_active = True
+            
+            if dueling_active:
+                # Mostra dano com Dueling separado
+                info_label.setText(f"Atq {'+' if attack_bonus >= 0 else ''}{attack_bonus}  |  Dano {weapon.damage_dice}{'+' if damage_bonus >= 0 else ''}{damage_bonus} +2 (Dueling)")
+            else:
+                # Mostra dano normal
+                info_label.setText(f"Atq {'+' if attack_bonus >= 0 else ''}{attack_bonus}  |  Dano {weapon.damage_dice}{'+' if damage_bonus >= 0 else ''}{damage_bonus}")
+        
+        info_label = QLabel()
         info_label.setFont(QFont("Georgia", 9))
         info_label.setStyleSheet("background-color: transparent; color: #654321;")
         weapon_layout.addWidget(info_label)
+        
+        # Checkbox para Dueling (se aplicável)
+        dueling_checkbox = None
+        if self.character.has_fighting_style("Dueling") and weapon.weapon_range.lower() == "melee":
+            from PyQt6.QtWidgets import QCheckBox
+            dueling_checkbox = QCheckBox("⚔️ Usar Dueling (+2 dano)")
+            dueling_checkbox.setFont(QFont("Georgia", 8))
+            dueling_checkbox.setStyleSheet("""
+                QCheckBox {
+                    background-color: transparent;
+                    color: #8B4513;
+                    font-weight: bold;
+                }
+                QCheckBox::indicator {
+                    width: 15px;
+                    height: 15px;
+                }
+            """)
+            dueling_checkbox.setChecked(True)  # Marcado por padrão
+            
+            # Conecta o checkbox para atualizar o label quando mudado
+            dueling_checkbox.stateChanged.connect(update_damage_label)
+            
+            weapon_layout.addWidget(dueling_checkbox)
+            
+            # Armazena referência ao checkbox no objeto weapon para acesso posterior
+            weapon.dueling_checkbox = dueling_checkbox
+        
+        # Atualiza o label inicial
+        update_damage_label()
         
         # Botões de rolagem
         buttons_layout = QHBoxLayout()
@@ -1560,11 +1649,29 @@ class CharacterSheetTab(QWidget):
         # roll() retorna (total, list_of_rolls)
         damage_total, damage_rolls = DiceRoller.roll(weapon.damage_dice)
         damage_bonus = weapon.get_damage_bonus(self.character)
-        total = damage_total + damage_bonus
+        
+        # Verificar se pode usar Dueling Fighting Style (via checkbox)
+        dueling_bonus = 0
+        if (self.character.has_fighting_style("Dueling") and 
+            weapon.weapon_range.lower() == "melee" and 
+            hasattr(weapon, 'dueling_checkbox') and 
+            weapon.dueling_checkbox.isChecked()):
+            dueling_bonus = 2
+        
+        total = damage_total + damage_bonus + dueling_bonus
         
         damage_type = weapon.damage_type
         rolls_str = "+".join(str(r) for r in damage_rolls)
-        message = f"<b>{weapon.name}</b>: 🎲 [{rolls_str}] {'+' if damage_bonus >= 0 else ''}{damage_bonus} = <b>{total}</b> de dano {damage_type}"
+        
+        # Monta a mensagem incluindo o bônus de Dueling se aplicável
+        bonus_parts = []
+        if damage_bonus != 0:
+            bonus_parts.append(f"{'+' if damage_bonus >= 0 else ''}{damage_bonus}")
+        if dueling_bonus > 0:
+            bonus_parts.append(f"+{dueling_bonus} (Dueling)")
+        
+        bonus_str = " ".join(bonus_parts) if bonus_parts else "+0"
+        message = f"<b>{weapon.name}</b>: 🎲 [{rolls_str}] {bonus_str} = <b>{total}</b> de dano {damage_type}"
         
         self.dice_history.add_entry(message, "DAMAGE")
         self.dice_history.show_and_raise()
@@ -1590,11 +1697,19 @@ class CharacterSheetTab(QWidget):
         con_mod = self.character.stats.get_modifier('constitution')
         avg_hp = (hit_die // 2) + 1 + con_mod
         
+        # Adiciona bônus de Dwarven Toughness se aplicável
+        dwarven_toughness_bonus = 0
+        if self.character.race.name == "Anão da Montanha":
+            dwarven_toughness_bonus = 1
+            avg_hp += dwarven_toughness_bonus
+        
+        bonus_text = f" + {dwarven_toughness_bonus} (Dwarven Toughness)" if dwarven_toughness_bonus > 0 else ""
+        
         msg.setInformativeText(
             f"Escolha o método de ganho de HP:\n\n"
             f"Dado de Vida: d{hit_die}\n"
-            f"Modificador CON: {'+' if con_mod >= 0 else ''}{con_mod}\n\n"
-            f"🎲 Rolar: 1d{hit_die} + {con_mod}\n"
+            f"Modificador CON: {'+' if con_mod >= 0 else ''}{con_mod}{bonus_text}\n\n"
+            f"🎲 Rolar: 1d{hit_die} + {con_mod}{bonus_text}\n"
             f"📊 Média: {avg_hp} HP garantido"
         )
         
@@ -1649,6 +1764,9 @@ class CharacterSheetTab(QWidget):
         )
         self.dice_history.show_and_raise()
         
+        # Verificar se ganhou Fighting Style neste nível
+        self.check_and_select_fighting_style(new_level)
+        
         # Mostrar features ganhas (se houver)
         if new_features:
             features_text = "\n".join([f"• {feature}" for feature in new_features])
@@ -1658,6 +1776,45 @@ class CharacterSheetTab(QWidget):
                 f"Você ganhou as seguintes features de classe:\n\n{features_text}\n\n"
                 f"Confira a seção de Features de Classe na ficha para mais detalhes."
             )
+    
+    def check_and_select_fighting_style(self, level: int):
+        """Verifica se o personagem ganhou Fighting Style e permite seleção"""
+        if not self.character.character_class:
+            return
+        
+        class_name = self.character.character_class.name
+        
+        # Verificar se ganhou Fighting Style neste nível
+        should_get_style = False
+        
+        if class_name == "Fighter" and level == 1:
+            should_get_style = True
+        elif class_name == "Ranger" and level == 2:
+            should_get_style = True
+        elif class_name == "Paladin" and level == 2:
+            should_get_style = True
+        
+        # Se já tem um Fighting Style dessa classe neste nível, não oferece novamente
+        # (evita duplicação ao recarregar personagem)
+        if should_get_style and len(self.character.fighting_styles) > 0:
+            return
+        
+        if should_get_style:
+            # Abrir dialog de seleção
+            dialog = FightingStyleDialog(class_name, self)
+            if dialog.exec():
+                selected_style = dialog.get_selected_style()
+                if selected_style and selected_style not in self.character.fighting_styles:
+                    self.character.fighting_styles.append(selected_style)
+                    self.update_display()
+                    self.character_updated.emit()
+                    
+                    QMessageBox.information(
+                        self,
+                        "Fighting Style Selecionado",
+                        f"Você escolheu o Fighting Style: <b>{selected_style}</b>\n\n"
+                        f"Este estilo de luta agora faz parte do seu personagem!"
+                    )
     
     def roll_initiative(self):
         """Rola iniciativa"""
