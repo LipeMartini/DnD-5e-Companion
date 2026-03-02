@@ -55,6 +55,9 @@ class Character:
     # Feats (Talentos)
     feats: List[str] = field(default_factory=list)
     
+    # Subclass (Arquétipo de classe)
+    subclass_name: Optional[str] = None
+    
     def __post_init__(self):
         self.update_derived_stats()
     
@@ -142,6 +145,10 @@ class Character:
         # Aplica bônus de Alert (+5 iniciativa)
         if self.has_feat("Alert"):
             self.initiative += 5
+        
+        # Aplica bônus de Mobile (+10 velocidade)
+        if self.has_feat("Mobile"):
+            self.speed += 10
     
     def set_race(self, race_name: str):
         """Define a raça do personagem e aplica bônus raciais"""
@@ -437,6 +444,10 @@ class Character:
             if self.has_trait('Dwarven Toughness'):
                 hp_gain += 1
             
+            # Tough Feat: +2 HP por nível
+            if self.has_feat('Tough'):
+                hp_gain += 2
+            
             hp_gain = max(1, hp_gain)
             self.max_hit_points += hp_gain
             self.current_hit_points = self.max_hit_points
@@ -466,6 +477,49 @@ class Character:
                 new_features.append(feature_name)
         
         return new_features
+    
+    def apply_subclass_proficiencies(self, subclass_name: str):
+        """
+        Aplica proficiências de uma subclasse ao personagem
+        
+        Args:
+            subclass_name: Nome da subclasse
+        """
+        if not self.character_class:
+            return
+        
+        class_name = self.character_class.name
+        
+        # Mapeamento de proficiências por subclasse
+        subclass_proficiencies = {
+            # Bard
+            "College of Valor": {
+                "armor": ["Medium Armor", "Shields"],
+                "weapon": ["Martial Weapons"]
+            },
+            # Cleric
+            "Life Domain": {
+                "armor": ["Heavy Armor"],
+                "weapon": []
+            },
+            "War Domain": {
+                "armor": ["Heavy Armor"],
+                "weapon": ["Martial Weapons"]
+            }
+        }
+        
+        if subclass_name in subclass_proficiencies:
+            profs = subclass_proficiencies[subclass_name]
+            
+            # Adiciona proficiências de armadura
+            for armor_prof in profs.get("armor", []):
+                if armor_prof not in self.armor_proficiencies:
+                    self.armor_proficiencies.append(armor_prof)
+            
+            # Adiciona proficiências de arma
+            for weapon_prof in profs.get("weapon", []):
+                if weapon_prof not in self.weapon_proficiencies:
+                    self.weapon_proficiencies.append(weapon_prof)
     
     def get_class_feature_description(self, feature_name: str) -> str:
         """
@@ -546,6 +600,7 @@ class Character:
             'spellcasting': self.spellcasting.to_dict() if self.spellcasting else None,
             'fighting_styles': self.fighting_styles,
             'feats': self.feats,
+            'subclass_name': self.subclass_name,
         }
     
     @classmethod
@@ -599,6 +654,7 @@ class Character:
         
         char.fighting_styles = data.get('fighting_styles', [])
         char.feats = data.get('feats', [])
+        char.subclass_name = data.get('subclass_name')
         
         return char
     

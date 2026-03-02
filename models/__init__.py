@@ -13,10 +13,12 @@ from .trait_descriptions import get_trait_description, TRAIT_DESCRIPTIONS
 from .class_features import ClassFeature, CLASS_FEATURES, get_class_features, get_all_features_up_to_level
 from .spell import Spell, SpellDatabase
 from .spellcasting import SpellcastingInfo, SpellSlotTable
+from .subclass import Subclass, SubclassFeature, SubclassDatabase
 
 __all__ = ['Character', 'Stats', 'Race', 'RaceDatabase', 'Subrace', 'SubraceDatabase', 
            'CharacterClass', 'ClassDatabase', 'Background', 'BackgroundDatabase', 'DiceRoller',
            'Weapon', 'COMMON_WEAPONS', 'Armor', 'COMMON_ARMORS', 'Item', 'COMMON_ITEMS', 'Inventory',
            'get_trait_description', 'TRAIT_DESCRIPTIONS',
            'ClassFeature', 'CLASS_FEATURES', 'get_class_features', 'get_all_features_up_to_level',
-           'Spell', 'SpellDatabase', 'SpellcastingInfo', 'SpellSlotTable']
+           'Spell', 'SpellDatabase', 'SpellcastingInfo', 'SpellSlotTable',
+           'Subclass', 'SubclassFeature', 'SubclassDatabase']

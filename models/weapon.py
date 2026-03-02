@@ -3,7 +3,7 @@ class Weapon:
     
     def __init__(self, name: str = "", damage_dice: str = "1d4", damage_type: str = "slashing",
                  properties: list = None, weapon_range: str = "melee", ability: str = "strength",
-                 proficient: bool = False, magical_bonus: int = 0):
+                 proficient: bool = False, magical_bonus: int = 0, add_ability_to_damage: bool = True):
         self.name = name
         self.damage_dice = damage_dice  # Ex: "1d8", "2d6"
         self.damage_type = damage_type  # slashing, piercing, bludgeoning, etc.
@@ -12,17 +12,17 @@ class Weapon:
         self.ability = ability  # strength ou dexterity
         self.proficient = proficient
         self.magical_bonus = magical_bonus  # +1, +2, +3 weapons
+        self.add_ability_to_damage = add_ability_to_damage  # Se deve adicionar modificador de habilidade ao dano
         self.equipped = False
     
     def get_attack_bonus(self, character) -> int:
         """Calcula o bônus de ataque"""
         bonus = 0
         
-        # Modificador de atributo
-        if self.ability == "strength":
-            bonus += character.stats.get_modifier('strength')
-        elif self.ability == "dexterity":
-            bonus += character.stats.get_modifier('dexterity')
+        # Modificador de atributo (suporta todos os atributos)
+        valid_abilities = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']
+        if self.ability.lower() in valid_abilities:
+            bonus += character.stats.get_modifier(self.ability.lower())
         
         # Proficiência (verifica automaticamente se o personagem é proficiente)
         if self.proficient or character.is_proficient_with_weapon(self):
@@ -41,11 +41,11 @@ class Weapon:
         """Calcula o bônus de dano"""
         bonus = 0
         
-        # Modificador de atributo
-        if self.ability == "strength":
-            bonus += character.stats.get_modifier('strength')
-        elif self.ability == "dexterity":
-            bonus += character.stats.get_modifier('dexterity')
+        # Modificador de atributo (apenas se add_ability_to_damage for True)
+        if self.add_ability_to_damage:
+            valid_abilities = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']
+            if self.ability.lower() in valid_abilities:
+                bonus += character.stats.get_modifier(self.ability.lower())
         
         # Bônus mágico
         bonus += self.magical_bonus
@@ -67,6 +67,7 @@ class Weapon:
             'ability': self.ability,
             'proficient': self.proficient,
             'magical_bonus': self.magical_bonus,
+            'add_ability_to_damage': self.add_ability_to_damage,
             'equipped': self.equipped
         }
     
@@ -81,7 +82,8 @@ class Weapon:
             weapon_range=data.get('weapon_range', 'melee'),
             ability=data.get('ability', 'strength'),
             proficient=data.get('proficient', False),
-            magical_bonus=data.get('magical_bonus', 0)
+            magical_bonus=data.get('magical_bonus', 0),
+            add_ability_to_damage=data.get('add_ability_to_damage', True)  # True por padrão para retrocompatibilidade
         )
         weapon.equipped = data.get('equipped', False)
         return weapon

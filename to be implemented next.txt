@@ -1,13 +1,14 @@
 CHECK --- Primeiro: Sistema de HP dinâmico (você vai aprender sobre eventos, atualização de UI)
 CHECK --- Primeiro-2: Hover tips (dar um hover com o mouse e aparecer uma tip que explica o que faz cada feature, principalmente para traços e características)
 CHECK --- Segundo: Equipamento básico (trabalhar com listas, CRUD simples)
-In Progress --- Terceiro: Sistema de XP e Level Up (lógica de negócio mais complexa)
+CHECK --- Terceiro: Sistema de XP e Level Up (lógica de negócio mais complexa)
 CHECK --- Quarto: Ataques e armas (integração com sistema de dados)
-In Progress --- Quinto: Sistema de magias (banco de dados maior, filtros, busca)
+CHECK --- Quinto: Sistema de magias (banco de dados maior, filtros, busca)
 
 
---------------- TESTAR LEVEL UPS DAS CLASSES E OUTROS CASTERS TBM ------------------------
----------------  PROCURAR QUALQUER COISAS QUE POSSA ESTAR ERRADA  ------------------------
+
+--------------- FALTA EXPERTISE !!!  		------------------------
+--------------- E PROFICIÊNCIA DE ARMADURA  	------------------------
 
 
 Básico:
@@ -23,26 +24,27 @@ Básico:
 	Peso total e capacidade de carga (baseado em Força)
 	Gerenciamento de moedas (PP, PO, PE, PC, PL)
 	Adicionar/remover itens
-3. Sistema de Experiência e Level Up das Classes			- In Progress
+3. Sistema de Experiência e Level Up das Classes			- CHECK
 	Adicionar XP manualmente
 	Botão de "Subir de Nível" que:
 		. Rola HP automaticamente
 		. Atualiza bônus de proficiência
 		. Mostra o que mudou
 		. Mostra features de classe do novo nível
-3.1 Fighting Styles
-3.2 Subclasses
-3.3 Feats
+3.1 Fighting Styles							- CHECK
+3.2 Subclasses								- IN PROGRESS
+	falta mais subclasses de clérigo... lembrar
+3.3 Feats								- CHECK
 3.3.1 Interação de Feats com Spells
 
-4. Notas e Biografia do Personagem
+4. Notas e Biografia do Personagem					- NEXT TO BE DONE
 	Campo de texto para história/background
 	Notas de sessão
 	Objetivos e motivações
 	Aparência física
 
 Nível Intermediário:
-5. Sistema de Magias (para classes conjuradoras)			- In Progress
+5. Sistema de Magias (para classes conjuradoras)			- CHECK (sem rolagens automáticas)
 	Banco de dados de magias por nível
 	Espaços de magia por nível
 	Magias preparadas vs conhecidas

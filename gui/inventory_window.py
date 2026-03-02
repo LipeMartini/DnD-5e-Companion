@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QTabWidget, 
                              QWidget, QLabel, QPushButton, QListWidget, QListWidgetItem,
                              QGroupBox, QFormLayout, QLineEdit, QSpinBox, QComboBox,
-                             QMessageBox, QFrame, QScrollArea, QGridLayout)
+                             QMessageBox, QFrame, QScrollArea, QGridLayout, QCheckBox)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QColor
 from models import Weapon, Armor, Item, COMMON_WEAPONS, COMMON_ARMORS, COMMON_ITEMS, Inventory
@@ -199,7 +199,13 @@ class InventoryWindow(QDialog):
         custom_form.addRow("Dano:", self.weapon_damage_input)
         
         self.weapon_type_combo = QComboBox()
-        self.weapon_type_combo.addItems(["slashing", "piercing", "bludgeoning", "fire", "cold", "lightning"])
+        self.weapon_type_combo.addItems([
+            "slashing", "piercing", "bludgeoning",  # Físico
+            "fire", "cold", "lightning", "thunder",  # Elemental
+            "acid", "poison",  # Químico
+            "necrotic", "radiant",  # Energia
+            "force", "psychic"  # Mágico
+        ])
         custom_form.addRow("Tipo de Dano:", self.weapon_type_combo)
         
         self.weapon_range_combo = QComboBox()
@@ -207,8 +213,13 @@ class InventoryWindow(QDialog):
         custom_form.addRow("Alcance:", self.weapon_range_combo)
         
         self.weapon_ability_combo = QComboBox()
-        self.weapon_ability_combo.addItems(["strength", "dexterity"])
+        self.weapon_ability_combo.addItems(["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"])
         custom_form.addRow("Atributo:", self.weapon_ability_combo)
+        
+        self.weapon_add_ability_checkbox = QCheckBox("Adicionar modificador ao dano")
+        self.weapon_add_ability_checkbox.setChecked(True)  # Marcado por padrão
+        self.weapon_add_ability_checkbox.setToolTip("Se desmarcado, apenas o dado de dano será usado (útil para cantrips)")
+        custom_form.addRow("", self.weapon_add_ability_checkbox)
         
         self.weapon_bonus_spin = QSpinBox()
         self.weapon_bonus_spin.setRange(0, 3)
@@ -503,7 +514,9 @@ class InventoryWindow(QDialog):
             damage_type=self.weapon_type_combo.currentText(),
             weapon_range=self.weapon_range_combo.currentText(),
             ability=self.weapon_ability_combo.currentText(),
-            magical_bonus=self.weapon_bonus_spin.value()
+            proficient=True,  # Armas customizadas sempre têm proficiência
+            magical_bonus=self.weapon_bonus_spin.value(),
+            add_ability_to_damage=self.weapon_add_ability_checkbox.isChecked()
         )
         
         self.character.inventory.add_weapon(weapon)
@@ -605,6 +618,33 @@ class InventoryWindow(QDialog):
         index = self.armors_list.currentRow()
         armor = self.character.inventory.armors[index]
         
+        # Verificar proficiência ao equipar
+        if not armor.equipped:
+            has_proficiency = self.check_armor_proficiency(armor)
+            if not has_proficiency:
+                # Aviso de falta de proficiência
+                armor_type_name = {
+                    Armor.LIGHT: "armadura leve",
+                    Armor.MEDIUM: "armadura média",
+                    Armor.HEAVY: "armadura pesada",
+                    Armor.SHIELD: "escudos"
+                }.get(armor.armor_type, "este tipo de armadura")
+                
+                reply = QMessageBox.warning(
+                    self,
+                    "Sem Proficiência",
+                    f"⚠️ Você não tem proficiência com {armor_type_name}!\n\n"
+                    f"Equipar {armor.name} sem proficiência resulta em:\n"
+                    f"• Desvantagem em testes de habilidade, testes de resistência e rolagens de ataque que usem Força ou Destreza\n"
+                    f"• Incapacidade de conjurar magias\n\n"
+                    f"Deseja equipar mesmo assim?",
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                    QMessageBox.StandardButton.No
+                )
+                
+                if reply == QMessageBox.StandardButton.No:
+                    return
+        
         # Se for escudo, pode equipar junto com armadura
         # Se for armadura, desequipa outras armaduras (exceto escudo)
         if armor.armor_type != Armor.SHIELD and armor.equipped == False:
@@ -617,6 +657,26 @@ class InventoryWindow(QDialog):
         
         self.update_armors_list()
         self.inventory_updated.emit()
+    
+    def check_armor_proficiency(self, armor: Armor) -> bool:
+        """Verifica se o personagem tem proficiência com a armadura"""
+        armor_type_map = {
+            Armor.LIGHT: "Light Armor",
+            Armor.MEDIUM: "Medium Armor",
+            Armor.HEAVY: "Heavy Armor",
+            Armor.SHIELD: "Shields"
+        }
+        
+        required_prof = armor_type_map.get(armor.armor_type)
+        if not required_prof:
+            return True
+        
+        # Verifica se tem a proficiência
+        for prof in self.character.armor_proficiencies:
+            if prof.lower() == required_prof.lower():
+                return True
+        
+        return False
     
     def remove_armor(self):
         """Remove armadura selecionada"""

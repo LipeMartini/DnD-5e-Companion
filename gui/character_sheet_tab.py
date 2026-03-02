@@ -1245,6 +1245,60 @@ class CharacterSheetTab(QWidget):
             separator.setStyleSheet("background-color: #D2B48C; max-height: 1px;")
             self.features_container_layout.addWidget(separator)
         
+        # Adiciona Subclasse se existir
+        if self.character.subclass_name:
+            from models import SubclassDatabase
+            
+            subclass = SubclassDatabase.get_subclass(
+                self.character.character_class.name,
+                self.character.subclass_name
+            )
+            
+            if subclass:
+                subclass_layout = QHBoxLayout()
+                subclass_layout.setContentsMargins(0, 0, 0, 0)
+                subclass_layout.setSpacing(5)
+                
+                # Label da Subclasse com destaque
+                subclass_label = QLabel(f"🎭 Subclasse: {subclass.name}")
+                subclass_label.setFont(QFont("Georgia", 10, QFont.Weight.Bold))
+                subclass_label.setStyleSheet("background-color: transparent; color: #4B0082;")
+                subclass_layout.addWidget(subclass_label)
+                
+                subclass_layout.addStretch()
+                
+                # Ícone informativo com tooltip
+                info_icon = QLabel("ℹ️")
+                info_icon.setFont(QFont("Georgia", 10))
+                info_icon.setStyleSheet("""
+                    background-color: transparent; 
+                    color: #4A90E2;
+                    padding: 2px;
+                """)
+                info_icon.setCursor(Qt.CursorShape.WhatsThisCursor)
+                
+                # Monta tooltip com descrição e features
+                tooltip_text = f"<b>{subclass.name}</b><br><br>{subclass.description}<br><br><b>Features:</b><br>"
+                features = subclass.get_all_features_up_to_level(self.character.level)
+                for feature in features:
+                    tooltip_text += f"<br>• <b>{feature.name}</b> (Nível {feature.level})"
+                
+                info_icon.setToolTip(tooltip_text)
+                subclass_layout.addWidget(info_icon)
+                
+                # Container para o layout
+                subclass_widget = QWidget()
+                subclass_widget.setLayout(subclass_layout)
+                subclass_widget.setStyleSheet("background-color: transparent;")
+                
+                self.features_container_layout.addWidget(subclass_widget)
+                
+                # Adiciona separador após subclasse
+                separator = QFrame()
+                separator.setFrameShape(QFrame.Shape.HLine)
+                separator.setStyleSheet("background-color: #D2B48C; max-height: 1px;")
+                self.features_container_layout.addWidget(separator)
+        
         # Adiciona Feats se existirem
         if self.character.feats:
             from models.feats import get_feat
@@ -1355,9 +1409,38 @@ class CharacterSheetTab(QWidget):
             """)
             info_icon.setCursor(Qt.CursorShape.WhatsThisCursor)
             
-            # Define o tooltip com a descrição
-            description = self.character.get_class_feature_description(feature_name)
-            info_icon.setToolTip(f"<b>{feature_name}</b><br><br>{description}")
+            # Verifica se é uma feature de subclasse (formato: "Nome (Subclasse)")
+            description = None
+            if "(" in feature_name and ")" in feature_name:
+                # É uma feature de subclasse
+                from models import SubclassDatabase
+                
+                # Extrai nome da feature e nome da subclasse
+                base_feature_name = feature_name.split(" (")[0]
+                subclass_name = feature_name.split("(")[1].rstrip(")")
+                
+                # Busca a subclasse
+                if self.character.character_class:
+                    subclass = SubclassDatabase.get_subclass(
+                        self.character.character_class.name,
+                        subclass_name
+                    )
+                    
+                    if subclass:
+                        # Busca a feature específica
+                        for feature in subclass.features:
+                            if feature.name == base_feature_name:
+                                description = feature.description
+                                break
+            else:
+                # É uma feature de classe normal
+                description = self.character.get_class_feature_description(feature_name)
+            
+            # Define o tooltip
+            if description:
+                info_icon.setToolTip(f"<b>{feature_name}</b><br><br>{description}")
+            else:
+                info_icon.setToolTip(f"<b>{feature_name}</b><br><br>Descrição não disponível.")
             
             feature_layout.addWidget(info_icon)
             
@@ -1444,11 +1527,8 @@ class CharacterSheetTab(QWidget):
             self.spells_list_layout.addWidget(cantrip_header)
             
             for cantrip_name in cantrips:
-                spell_label = QLabel(f"• {cantrip_name}")
-                spell_label.setFont(QFont("Georgia", 9))
-                spell_label.setStyleSheet("color: #654321; padding-left: 10px;")
-                spell_label.setWordWrap(True)
-                self.spells_list_layout.addWidget(spell_label)
+                cantrip_widget = self.create_spell_widget(cantrip_name, 0)
+                self.spells_list_layout.addWidget(cantrip_widget)
         
         # Adiciona magias por nível
         if spell_list:
@@ -1471,11 +1551,8 @@ class CharacterSheetTab(QWidget):
                 self.spells_list_layout.addWidget(level_header)
                 
                 for spell_name in spells_by_level[level]:
-                    spell_label = QLabel(f"• {spell_name}")
-                    spell_label.setFont(QFont("Georgia", 9))
-                    spell_label.setStyleSheet("color: #654321; padding-left: 10px;")
-                    spell_label.setWordWrap(True)
-                    self.spells_list_layout.addWidget(spell_label)
+                    spell_widget = self.create_spell_widget(spell_name, level)
+                    self.spells_list_layout.addWidget(spell_widget)
         
         # Se não tem magias
         if not cantrips and not spell_list:
@@ -1484,6 +1561,219 @@ class CharacterSheetTab(QWidget):
             self.spells_list_layout.addWidget(no_spells)
         
         self.spells_list_layout.addStretch()
+    
+    def create_spell_widget(self, spell_name: str, spell_level: int):
+        """Cria widget para uma magia com botão de conjurar"""
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(0, 2, 0, 2)
+        layout.setSpacing(5)
+        
+        # Nome da magia
+        spell_label = QLabel(f"• {spell_name}")
+        spell_label.setFont(QFont("Georgia", 9))
+        spell_label.setStyleSheet("color: #654321;")
+        layout.addWidget(spell_label)
+        
+        layout.addStretch()
+        
+        # Botão de conjurar
+        if spell_level == 0:
+            # Cantrips não gastam slots
+            cast_btn = QPushButton("✨ Conjurar")
+            cast_btn.setToolTip("Cantrips podem ser conjurados à vontade")
+        else:
+            # Magias de nível 1-9 gastam slots
+            cast_btn = QPushButton(f"✨ Conjurar (Nv {spell_level})")
+            cast_btn.setToolTip(f"Gasta 1 spell slot de nível {spell_level}")
+        
+        cast_btn.setFont(QFont("Georgia", 8))
+        cast_btn.setMaximumWidth(150)
+        cast_btn.setMaximumHeight(22)
+        cast_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #6A5ACD;
+                color: white;
+                border: 2px solid #483D8B;
+                border-radius: 4px;
+                padding: 2px 8px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #7B68EE;
+            }
+            QPushButton:disabled {
+                background-color: #999999;
+                border-color: #666666;
+            }
+        """)
+        
+        # Conecta ao método de conjurar
+        cast_btn.clicked.connect(lambda: self.cast_spell(spell_name, spell_level))
+        
+        # Desabilita se não tiver slots disponíveis (exceto cantrips)
+        if spell_level > 0:
+            available_slots = self.character.spellcasting.current_spell_slots[spell_level] if spell_level < len(self.character.spellcasting.current_spell_slots) else 0
+            if available_slots <= 0:
+                cast_btn.setEnabled(False)
+                cast_btn.setToolTip(f"Sem spell slots de nível {spell_level} disponíveis")
+        
+        layout.addWidget(cast_btn)
+        
+        return widget
+    
+    def cast_spell(self, spell_name: str, spell_level: int):
+        """Conjura uma magia, gastando spell slot se necessário"""
+        # Cantrips não gastam slots
+        if spell_level == 0:
+            message = f"✨ <b>{spell_name}</b> conjurado!"
+            self.dice_history.add_entry(message, "SPELL")
+            self.dice_history.show_and_raise()
+            return
+        
+        # Verifica quais níveis de slot estão disponíveis para upcasting
+        available_levels = []
+        for level in range(spell_level, 10):
+            if level < len(self.character.spellcasting.current_spell_slots):
+                slots = self.character.spellcasting.current_spell_slots[level]
+                if slots > 0:
+                    available_levels.append(level)
+        
+        if not available_levels:
+            QMessageBox.warning(
+                self,
+                "Sem Spell Slots",
+                f"Você não tem spell slots de nível {spell_level} ou superior disponíveis!"
+            )
+            return
+        
+        # Se tem apenas um nível disponível, usa direto
+        if len(available_levels) == 1:
+            chosen_level = available_levels[0]
+        else:
+            # Abre dialog para escolher nível de slot (upcasting)
+            chosen_level = self.choose_spell_slot_level(spell_name, spell_level, available_levels)
+            if chosen_level is None:
+                return  # Usuário cancelou
+        
+        # Gasta o slot escolhido
+        available_slots = self.character.spellcasting.current_spell_slots[chosen_level]
+        self.character.spellcasting.current_spell_slots[chosen_level] -= 1
+        
+        # Busca informações da magia para rolagens automáticas
+        from models import SpellDatabase
+        spell = SpellDatabase.get_spell(spell_name)
+        
+        # Adiciona ao histórico
+        if chosen_level > spell_level:
+            message = f"✨ <b>{spell_name}</b> conjurado em nível {chosen_level}! (Upcast - Slot Nv {chosen_level} usado)"
+        else:
+            message = f"✨ <b>{spell_name}</b> conjurado! (Slot Nv {chosen_level} usado)"
+        
+        self.dice_history.add_entry(message, "SPELL")
+    
+        
+        self.dice_history.show_and_raise()
+        
+        # Atualiza displays
+        self.update_spell_slots_display()
+        self.update_spells_display()
+        self.character_updated.emit()
+    
+    def choose_spell_slot_level(self, spell_name: str, base_level: int, available_levels: list) -> int:
+        """Abre dialog para escolher qual nível de slot usar (upcasting)"""
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QButtonGroup, QRadioButton
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Escolher Nível de Spell Slot")
+        dialog.setMinimumWidth(350)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Título
+        title = QLabel(f"<b>{spell_name}</b> (Nível base: {base_level})")
+        title.setFont(QFont("Georgia", 11, QFont.Weight.Bold))
+        title.setStyleSheet("color: #654321; margin-bottom: 10px;")
+        layout.addWidget(title)
+        
+        # Descrição
+        desc = QLabel("Escolha qual nível de spell slot usar:")
+        desc.setFont(QFont("Georgia", 10))
+        desc.setStyleSheet("color: #654321; margin-bottom: 10px;")
+        layout.addWidget(desc)
+        
+        # Radio buttons para cada nível disponível
+        button_group = QButtonGroup(dialog)
+        radio_buttons = {}
+        
+        for level in available_levels:
+            slots_available = self.character.spellcasting.current_spell_slots[level]
+            
+            if level == base_level:
+                label_text = f"Nível {level} ({slots_available} slot{'s' if slots_available != 1 else ''} disponível/eis)"
+            else:
+                label_text = f"Nível {level} - Upcast ({slots_available} slot{'s' if slots_available != 1 else ''} disponível/eis)"
+            
+            radio = QRadioButton(label_text)
+            radio.setFont(QFont("Georgia", 9))
+            radio.setStyleSheet("color: #654321; padding: 5px;")
+            
+            # Marca o nível base como padrão
+            if level == base_level:
+                radio.setChecked(True)
+            
+            button_group.addButton(radio)
+            radio_buttons[level] = radio
+            layout.addWidget(radio)
+        
+        # Botões de ação
+        from PyQt6.QtWidgets import QHBoxLayout
+        buttons_layout = QHBoxLayout()
+        
+        confirm_btn = QPushButton("✨ Conjurar")
+        confirm_btn.setFont(QFont("Georgia", 9, QFont.Weight.Bold))
+        confirm_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #6A5ACD;
+                color: white;
+                border: 2px solid #483D8B;
+                border-radius: 5px;
+                padding: 8px 20px;
+            }
+            QPushButton:hover {
+                background-color: #7B68EE;
+            }
+        """)
+        confirm_btn.clicked.connect(dialog.accept)
+        buttons_layout.addWidget(confirm_btn)
+        
+        cancel_btn = QPushButton("Cancelar")
+        cancel_btn.setFont(QFont("Georgia", 9))
+        cancel_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #8B4513;
+                color: white;
+                border: 2px solid #654321;
+                border-radius: 5px;
+                padding: 8px 20px;
+            }
+            QPushButton:hover {
+                background-color: #A0522D;
+            }
+        """)
+        cancel_btn.clicked.connect(dialog.reject)
+        buttons_layout.addWidget(cancel_btn)
+        
+        layout.addLayout(buttons_layout)
+        
+        # Executa dialog
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            # Encontra qual radio button está selecionado
+            for level, radio in radio_buttons.items():
+                if radio.isChecked():
+                    return level
+        
+        return None  # Cancelado
     
     def open_spell_management(self):
         """Abre janela de gerenciamento de magias"""
@@ -1599,16 +1889,40 @@ class CharacterSheetTab(QWidget):
         
         # Função para atualizar o label de dano dinamicamente
         def update_damage_label():
+            # Verifica Dueling
             dueling_active = False
             if hasattr(weapon, 'dueling_checkbox') and weapon.dueling_checkbox.isChecked():
                 dueling_active = True
             
+            # Verifica GWM
+            gwm_active = False
+            if hasattr(weapon, 'gwm_checkbox') and weapon.gwm_checkbox.isChecked():
+                gwm_active = True
+            
+            # Verifica Sharpshooter
+            ss_active = False
+            if hasattr(weapon, 'sharpshooter_checkbox') and weapon.sharpshooter_checkbox.isChecked():
+                ss_active = True
+            
+            # Calcula bônus de ataque ajustado
+            adjusted_attack = attack_bonus
+            if gwm_active or ss_active:
+                adjusted_attack -= 5
+            
+            # Monta string de dano
+            damage_parts = [f"{weapon.damage_dice}{'+' if damage_bonus >= 0 else ''}{damage_bonus}"]
+            
             if dueling_active:
-                # Mostra dano com Dueling separado
-                info_label.setText(f"Atq {'+' if attack_bonus >= 0 else ''}{attack_bonus}  |  Dano {weapon.damage_dice}{'+' if damage_bonus >= 0 else ''}{damage_bonus} +2 (Dueling)")
-            else:
-                # Mostra dano normal
-                info_label.setText(f"Atq {'+' if attack_bonus >= 0 else ''}{attack_bonus}  |  Dano {weapon.damage_dice}{'+' if damage_bonus >= 0 else ''}{damage_bonus}")
+                damage_parts.append("+2 (Dueling)")
+            
+            if gwm_active:
+                damage_parts.append("+10 (GWM)")
+            elif ss_active:
+                damage_parts.append("+10 (SS)")
+            
+            damage_str = " ".join(damage_parts)
+            
+            info_label.setText(f"Atq {'+' if adjusted_attack >= 0 else ''}{adjusted_attack}  |  Dano {damage_str}")
         
         info_label = QLabel()
         info_label.setFont(QFont("Georgia", 9))
@@ -1662,6 +1976,10 @@ class CharacterSheetTab(QWidget):
                 }
             """)
             gwm_checkbox.setChecked(False)  # Desmarcado por padrão
+            
+            # Conecta o checkbox para atualizar o label quando mudado
+            gwm_checkbox.stateChanged.connect(update_damage_label)
+            
             weapon_layout.addWidget(gwm_checkbox)
             
             # Armazena referência ao checkbox no objeto weapon
@@ -1686,6 +2004,10 @@ class CharacterSheetTab(QWidget):
                 }
             """)
             ss_checkbox.setChecked(False)  # Desmarcado por padrão
+            
+            # Conecta o checkbox para atualizar o label quando mudado
+            ss_checkbox.stateChanged.connect(update_damage_label)
+            
             weapon_layout.addWidget(ss_checkbox)
             
             # Armazena referência ao checkbox no objeto weapon
@@ -1857,7 +2179,20 @@ class CharacterSheetTab(QWidget):
             dwarven_toughness_bonus = 1
             avg_hp += dwarven_toughness_bonus
         
-        bonus_text = f" + {dwarven_toughness_bonus} (Dwarven Toughness)" if dwarven_toughness_bonus > 0 else ""
+        # Adiciona bônus de Tough feat se aplicável
+        tough_bonus = 0
+        if self.character.has_feat('Tough'):
+            tough_bonus = 2
+            avg_hp += tough_bonus
+        
+        # Monta texto de bônus
+        bonus_parts = []
+        if dwarven_toughness_bonus > 0:
+            bonus_parts.append(f"{dwarven_toughness_bonus} (Dwarven Toughness)")
+        if tough_bonus > 0:
+            bonus_parts.append(f"{tough_bonus} (Tough)")
+        
+        bonus_text = " + " + " + ".join(bonus_parts) if bonus_parts else ""
         
         msg.setInformativeText(
             f"Escolha o método de ganho de HP:\n\n"
@@ -1910,21 +2245,14 @@ class CharacterSheetTab(QWidget):
         self.update_display()
         self.character_updated.emit()
         
-        # Adicionar ao histórico
+        # Adicionar ao histórico (mas não abrir automaticamente)
         method = "Média" if use_average else "Rolagem"
         self.dice_history.add_entry(
             f"<b>Subiu para o nível {new_level}!</b> HP ganho: +{hp_gained} ({method})",
             "INFO"
         )
-        self.dice_history.show_and_raise()
         
-        # Verificar se ganhou Fighting Style neste nível
-        self.check_and_select_fighting_style(new_level)
-        
-        # Verificar se ganhou Feat/ASI neste nível
-        self.check_and_select_feat(new_level)
-        
-        # Mostrar features ganhas (se houver)
+        # Mostrar features ganhas PRIMEIRO (se houver)
         if new_features:
             features_text = "\n".join([f"• {feature}" for feature in new_features])
             QMessageBox.information(
@@ -1933,6 +2261,16 @@ class CharacterSheetTab(QWidget):
                 f"Você ganhou as seguintes features de classe:\n\n{features_text}\n\n"
                 f"Confira a seção de Features de Classe na ficha para mais detalhes."
             )
+        
+        # DEPOIS das features, verificar escolhas em ordem:
+        # 1. Fighting Style
+        self.check_and_select_fighting_style(new_level)
+        
+        # 2. Subclasse
+        self.check_and_select_subclass(new_level)
+        
+        # 3. Feat/ASI
+        self.check_and_select_feat(new_level)
     
     def check_and_select_fighting_style(self, level: int):
         """Verifica se o personagem ganhou Fighting Style e permite seleção"""
@@ -1972,6 +2310,146 @@ class CharacterSheetTab(QWidget):
                         f"Você escolheu o Fighting Style: <b>{selected_style}</b>\n\n"
                         f"Este estilo de luta agora faz parte do seu personagem!"
                     )
+    
+    def check_and_select_subclass(self, level: int):
+        """Verifica se o personagem deve escolher subclasse e permite seleção"""
+        from models import SubclassDatabase
+        from gui.subclass_dialog import SubclassDialog
+        
+        if not self.character.character_class:
+            return
+        
+        # Verifica se já tem subclasse
+        if self.character.subclass_name:
+            return
+        
+        class_name = self.character.character_class.name
+        selection_level = SubclassDatabase.get_selection_level(class_name)
+        
+        # Verifica se atingiu o nível de seleção
+        if level != selection_level:
+            return
+        
+        # Verifica se há subclasses disponíveis para esta classe
+        available_subclasses = SubclassDatabase.get_subclasses_for_class(class_name)
+        if not available_subclasses:
+            return
+        
+        # Abrir dialog de seleção
+        dialog = SubclassDialog(self.character, self)
+        if dialog.exec():
+            selected_subclass = dialog.get_selected_subclass()
+            if selected_subclass:
+                self.character.subclass_name = selected_subclass
+                
+                # Aplicar proficiências da subclasse
+                self.character.apply_subclass_proficiencies(selected_subclass)
+                
+                # Adicionar features da subclasse para o nível atual
+                subclass = SubclassDatabase.get_subclass(class_name, selected_subclass)
+                if subclass:
+                    features = subclass.get_features_at_level(level)
+                    for feature in features:
+                        feature_text = f"{feature.name} ({selected_subclass})"
+                        if feature_text not in self.character.class_features:
+                            self.character.class_features.append(feature_text)
+                
+                # Verificar se precisa escolher skills adicionais (College of Lore)
+                if selected_subclass == "College of Lore":
+                    from gui.skill_selection_dialog import SkillSelectionDialog
+                    
+                    skill_dialog = SkillSelectionDialog(
+                        self.character,
+                        num_skills=3,
+                        title="College of Lore - Bonus Proficiencies",
+                        parent=self
+                    )
+                    
+                    if skill_dialog.exec():
+                        selected_skills = skill_dialog.get_selected_skills()
+                        for skill in selected_skills:
+                            if skill not in self.character.skill_proficiencies:
+                                self.character.skill_proficiencies.append(skill)
+                
+                self.update_display()
+                self.character_updated.emit()
+                
+                QMessageBox.information(
+                    self,
+                    "Subclasse Selecionada",
+                    f"Você escolheu a subclasse: <b>{selected_subclass}</b>\n\n"
+                    f"Esta subclasse agora faz parte do seu personagem!"
+                )
+    
+    def check_missing_subclass(self):
+        """Verifica se personagem está em nível de subclasse mas não tem uma escolhida"""
+        from models import SubclassDatabase
+        from gui.subclass_dialog import SubclassDialog
+        
+        if not self.character.character_class:
+            return
+        
+        # Se já tem subclasse, não faz nada
+        if self.character.subclass_name:
+            return
+        
+        class_name = self.character.character_class.name
+        selection_level = SubclassDatabase.get_selection_level(class_name)
+        
+        # Verifica se já está no nível de seleção ou superior
+        if self.character.level < selection_level:
+            return
+        
+        # Verifica se há subclasses disponíveis para esta classe
+        available_subclasses = SubclassDatabase.get_subclasses_for_class(class_name)
+        if not available_subclasses:
+            return
+        
+        # Abrir dialog de seleção
+        dialog = SubclassDialog(self.character, self)
+        if dialog.exec():
+            selected_subclass = dialog.get_selected_subclass()
+            if selected_subclass:
+                self.character.subclass_name = selected_subclass
+                
+                # Aplicar proficiências da subclasse
+                self.character.apply_subclass_proficiencies(selected_subclass)
+                
+                # Adicionar features da subclasse para todos os níveis até o atual
+                subclass = SubclassDatabase.get_subclass(class_name, selected_subclass)
+                if subclass:
+                    features = subclass.get_all_features_up_to_level(self.character.level)
+                    for feature in features:
+                        feature_text = f"{feature.name} ({selected_subclass})"
+                        if feature_text not in self.character.class_features:
+                            self.character.class_features.append(feature_text)
+                
+                # Verificar se precisa escolher skills adicionais (College of Lore)
+                if selected_subclass == "College of Lore":
+                    from gui.skill_selection_dialog import SkillSelectionDialog
+                    
+                    skill_dialog = SkillSelectionDialog(
+                        self.character,
+                        num_skills=3,
+                        title="College of Lore - Bonus Proficiencies",
+                        parent=self
+                    )
+                    
+                    if skill_dialog.exec():
+                        selected_skills = skill_dialog.get_selected_skills()
+                        for skill in selected_skills:
+                            if skill not in self.character.skill_proficiencies:
+                                self.character.skill_proficiencies.append(skill)
+                
+                self.update_display()
+                self.character_updated.emit()
+                
+                QMessageBox.information(
+                    self,
+                    "Subclasse Selecionada",
+                    f"Você escolheu a subclasse: <b>{selected_subclass}</b>\n\n"
+                    f"Esta subclasse agora faz parte do seu personagem!"
+                )
     
     def check_and_select_feat(self, level: int):
         """Verifica se o personagem ganhou Feat/ASI e permite seleção"""
@@ -2088,10 +2566,7 @@ class CharacterSheetTab(QWidget):
             self.character.max_hit_points += hp_bonus
             self.character.current_hit_points += hp_bonus
         
-        # Mobile: +10 velocidade
-        elif feat_name == "Mobile":
-            self.character.speed += 10
-        
+        # Mobile: +10 velocidade (aplicado automaticamente em update_derived_stats)
         # Alert: +5 iniciativa (aplicado automaticamente em update_derived_stats)
         # Great Weapon Master: -5/+10 (aplicado via checkbox)
         # Sharpshooter: -5/+10 (aplicado via checkbox)
@@ -2283,3 +2758,6 @@ class CharacterSheetTab(QWidget):
         """Define um novo personagem"""
         self.character = character
         self.update_display()
+        
+        # Verifica se precisa escolher subclasse
+        self.check_missing_subclass()

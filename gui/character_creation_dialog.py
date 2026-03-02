@@ -33,6 +33,7 @@ class CharacterCreationDialog(QDialog):
         basic_layout.addRow("Nome:", self.name_input)
         
         self.race_combo = QComboBox()
+        self.race_combo.addItem("Escolha uma Raça")  # Placeholder
         races = list(RaceDatabase.get_all_races().keys())
         self.race_combo.addItems(races)
         self.race_combo.currentTextChanged.connect(self.on_race_changed)
@@ -43,12 +44,14 @@ class CharacterCreationDialog(QDialog):
         basic_layout.addRow("Subraça:", self.subrace_combo)
         
         self.class_combo = QComboBox()
+        self.class_combo.addItem("Escolha uma Classe")  # Placeholder
         classes = list(ClassDatabase.get_all_classes().keys())
         self.class_combo.addItems(classes)
         self.class_combo.currentTextChanged.connect(self.on_class_changed)
         basic_layout.addRow("Classe:", self.class_combo)
 
         self.background_combo = QComboBox()
+        self.background_combo.addItem("Escolha um Antecedente")  # Placeholder
         backgrounds = list(BackgroundDatabase.get_all_backgrounds().keys())
         self.background_combo.addItems(backgrounds)
         self.background_combo.currentTextChanged.connect(self.on_background_changed)
@@ -191,7 +194,8 @@ class CharacterCreationDialog(QDialog):
         )
     
     def on_race_changed(self, race_name: str):
-        if race_name:
+        # Ignora placeholder
+        if race_name and race_name != "Escolha uma Raça":
             self.character.set_race(race_name)
             self.character.set_subrace('None')
             self.subrace_combo.clear()
@@ -207,12 +211,14 @@ class CharacterCreationDialog(QDialog):
             self.update_skills_list()
     
     def on_class_changed(self, class_name: str):
-        if class_name:
+        # Ignora placeholder
+        if class_name and class_name != "Escolha uma Classe":
             self.character.set_class(class_name)
             self.update_skills_list()
     
     def on_background_changed(self, background_name: str):
-        if background_name:
+        # Ignora placeholder
+        if background_name and background_name != "Escolha um Antecedente":
             self.character.set_background(background_name)
             self.update_skills_list()
     
@@ -273,8 +279,17 @@ class CharacterCreationDialog(QDialog):
             QMessageBox.warning(self, "Aviso", "Por favor, selecione uma raça.")
             return
         
-        if not self.class_combo.currentText():
+        # Validar que raça, classe e antecedente válidos foram selecionados
+        if self.race_combo.currentText() == "Escolha uma Raça":
+            QMessageBox.warning(self, "Aviso", "Por favor, selecione uma raça.")
+            return
+        
+        if self.class_combo.currentText() == "Escolha uma Classe":
             QMessageBox.warning(self, "Aviso", "Por favor, selecione uma classe.")
+            return
+        
+        if self.background_combo.currentText() == "Escolha um Antecedente":
+            QMessageBox.warning(self, "Aviso", "Por favor, selecione um antecedente.")
             return
         
         # Atualizar personagem com dados finais
