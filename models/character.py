@@ -383,7 +383,6 @@ class Character:
             # Se tem subclasse conjuradora, não inicializa automaticamente (já foi configurado)
             # Apenas atualiza os spell slots se já existe spellcasting
             if self.spellcasting:
-                from models.spellcasting import SpellSlotTable
                 slots = SpellSlotTable.get_third_caster_slots(self.level)
                 self.spellcasting.max_spell_slots = slots
                 self.spellcasting.current_spell_slots = slots.copy()

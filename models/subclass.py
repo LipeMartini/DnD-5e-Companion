@@ -96,6 +96,191 @@ BERSERKER = Subclass(
     ]
 )
 
+KNOWLEDGE_DOMAIN = Subclass(
+    name="Knowledge Domain",
+    class_name="Cleric",
+    description="The gods of knowledge value learning and understanding above all. Clerics of this domain serve as scholars, sages, and guardians of ancient lore, preserving secrets and uncovering lost truths.",
+    selection_level=1,
+    features=[
+        SubclassFeature(
+            name="Blessings of Knowledge",
+            level=1,
+            description="You learn two languages of your choice. You also become proficient in two of the following skills of your choice: Arcana, History, Nature, or Religion. Your proficiency bonus is doubled for any ability check you make that uses either of those skills."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Knowledge of the Ages",
+            level=2,
+            description="You can use your Channel Divinity to tap into a divine well of knowledge. As an action, you choose one skill or tool. For 10 minutes, you have proficiency with the chosen skill or tool."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Read Thoughts",
+            level=6,
+            description="You can use your Channel Divinity to read a creature's thoughts. You can then attempt to leave a suggestion in its mind, as per the Suggestion spell, without expending a spell slot."
+        ),
+        SubclassFeature(
+            name="Potent Spellcasting",
+            level=8,
+            description="You add your Wisdom modifier to the damage you deal with any cleric cantrip."
+        ),
+        SubclassFeature(
+            name="Visions of the Past",
+            level=17,
+            description="You can call up visions of the past related to an object you touch or the location you are in. After meditating for 1 minute, you receive dreamlike, shadowy glimpses of events that occurred involving the object or in the location."
+        )
+    ]
+)
+
+LIGHT_DOMAIN = Subclass(
+    name="Light Domain",
+    class_name="Cleric",
+    description="Clerics of the Light domain are enlightened souls infused with radiance and the power of fire. They bring light to the darkest places and banish shadows and fear.",
+    selection_level=1,
+    features=[
+        SubclassFeature(
+            name="Bonus Cantrip",
+            level=1,
+            description="You gain the Light cantrip if you don't already know it."
+        ),
+        SubclassFeature(
+            name="Warding Flare",
+            level=1,
+            description="When you are attacked by a creature within 30 feet of you that you can see, you can use your reaction to impose disadvantage on that attack roll by interposing divine light. You can use this feature a number of times equal to your Wisdom modifier (minimum of once), regaining all expended uses when you finish a long rest."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Radiance of the Dawn",
+            level=2,
+            description="You can use your Channel Divinity to dispel magical darkness and deal radiant damage. As an action, you present your holy symbol, and any magical darkness within 30 feet is dispelled. Additionally, each hostile creature within 30 feet must make a Constitution saving throw or take 2d10 + your cleric level radiant damage (half on a success)."
+        ),
+        SubclassFeature(
+            name="Improved Flare",
+            level=6,
+            description="You can now use your Warding Flare feature to protect a creature other than yourself."
+        ),
+        SubclassFeature(
+            name="Potent Spellcasting",
+            level=8,
+            description="You add your Wisdom modifier to the damage you deal with any cleric cantrip."
+        ),
+        SubclassFeature(
+            name="Corona of Light",
+            level=17,
+            description="You can use your action to activate an aura of radiant light that lasts for 1 minute. It sheds bright light in a 60-foot radius and dim light for an additional 30 feet. Any hostile creature that starts its turn in the aura has disadvantage on saving throws against spells that deal fire or radiant damage until your aura ends."
+        )
+    ]
+)
+
+NATURE_DOMAIN = Subclass(
+    name="Nature Domain",
+    class_name="Cleric",
+    description="The Nature domain grants clerics the power to command the primal forces of the natural world. These clerics serve deities of the wild, acting as intermediaries between civilization and nature.",
+    selection_level=1,
+    features=[
+        SubclassFeature(
+            name="Acolyte of Nature",
+            level=1,
+            description="You learn one druid cantrip of your choice. You also gain proficiency in one of the following skills of your choice: Animal Handling, Nature, or Survival."
+        ),
+        SubclassFeature(
+            name="Bonus Proficiency",
+            level=1,
+            description="You gain proficiency with heavy armor."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Charm Animals and Plants",
+            level=2,
+            description="You can use your Channel Divinity to charm animals and plants. As an action, you present your holy symbol. Each beast or plant creature within 30 feet of you that can see you must make a Wisdom saving throw or be charmed for 1 minute or until it takes damage."
+        ),
+        SubclassFeature(
+            name="Dampen Elements",
+            level=6,
+            description="When you or a creature within 30 feet of you takes acid, cold, fire, lightning, or thunder damage, you can use your reaction to grant resistance to that instance of damage."
+        ),
+        SubclassFeature(
+            name="Divine Strike",
+            level=8,
+            description="Once on each of your turns when you hit a creature with a weapon attack, you can cause the attack to deal an extra 1d8 cold, lightning, or thunder damage of your choice. The extra damage increases to 2d8 at 14th level."
+        ),
+        SubclassFeature(
+            name="Master of Nature",
+            level=17,
+            description="When you use your Channel Divinity: Charm Animals and Plants, you can affect any number of creatures you choose within range, and charmed creatures no longer become hostile to you or your allies when the charm ends."
+        )
+    ]
+)
+
+TEMPEST_DOMAIN = Subclass(
+    name="Tempest Domain",
+    class_name="Cleric",
+    description="The Tempest domain calls down the fury of the storm. Clerics of this domain can unleash thunder and lightning upon their foes and harness the chaotic power of wind and rain.",
+    selection_level=1,
+    features=[
+        SubclassFeature(
+            name="Bonus Proficiencies",
+            level=1,
+            description="You gain proficiency with martial weapons and heavy armor."
+        ),
+        SubclassFeature(
+            name="Wrath of the Storm",
+            level=1,
+            description="When a creature within 5 feet of you that you can see hits you with an attack, you can use your reaction to strike it with lightning or thunder. The creature takes 2d8 lightning or thunder damage (your choice), and it must make a Dexterity saving throw or take the full damage (half on success). You can use this feature a number of times equal to your Wisdom modifier (minimum of once)."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Destructive Wrath",
+            level=2,
+            description="You can use your Channel Divinity to maximize lightning or thunder damage. When you roll lightning or thunder damage, you can use your Channel Divinity to deal maximum damage instead of rolling."
+        ),
+        SubclassFeature(
+            name="Thunderbolt Strike",
+            level=6,
+            description="When you deal lightning damage to a Large or smaller creature, you can also push it up to 10 feet away from you."
+        ),
+        SubclassFeature(
+            name="Divine Strike",
+            level=8,
+            description="Once on each of your turns when you hit with a weapon attack, you can deal an extra 1d8 thunder damage. The extra damage increases to 2d8 at 14th level."
+        ),
+        SubclassFeature(
+            name="Stormborn",
+            level=17,
+            description="You have a flying speed equal to your walking speed whenever you are in stormy conditions (rain, wind, or lightning)."
+        )
+    ]
+)
+
+TRICKERY_DOMAIN = Subclass(
+    name="Trickery Domain",
+    class_name="Cleric",
+    description="Clerics of the Trickery domain serve gods of mischief, deception, and thieves. They delight in confounding their foes, stealing from the arrogant, and spreading misdirection wherever they go.",
+    selection_level=1,
+    features=[
+        SubclassFeature(
+            name="Blessing of the Trickster",
+            level=1,
+            description="You can use your action to touch a willing creature other than yourself to give it advantage on Dexterity (Stealth) checks for 1 hour."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Invoke Duplicity",
+            level=2,
+            description="You can use your Channel Divinity to create an illusory duplicate of yourself. As an action, you create a perfect illusion of yourself that lasts for 1 minute. You can cast spells from the duplicate's space, and you gain advantage on attack rolls against a creature if both you and your illusion are within 5 feet of it."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Cloak of Shadows",
+            level=6,
+            description="You can use your Channel Divinity to vanish. As an action, you become invisible until the end of your next turn."
+        ),
+        SubclassFeature(
+            name="Divine Strike",
+            level=8,
+            description="Once on each of your turns when you hit a creature with a weapon attack, you can cause the attack to deal an extra 1d8 poison damage. The extra damage increases to 2d8 at 14th level."
+        ),
+        SubclassFeature(
+            name="Improved Duplicity",
+            level=17,
+            description="You can create up to four duplicates of yourself using Invoke Duplicity, and moving any of the duplicates uses no additional action."
+        )
+    ]
+)
+
 TOTEM_WARRIOR = Subclass(
     name="Path of the Totem Warrior",
     class_name="Barbarian",
@@ -293,7 +478,12 @@ BARD_SUBCLASSES = {
 }
 
 CLERIC_SUBCLASSES = {
+    "Knowledge Domain": KNOWLEDGE_DOMAIN,
     "Life Domain": LIFE_DOMAIN,
+    "Light Domain": LIGHT_DOMAIN,
+    "Nature Domain": NATURE_DOMAIN,
+    "Tempest Domain": TEMPEST_DOMAIN,
+    "Trickery Domain": TRICKERY_DOMAIN,
     "War Domain": WAR_DOMAIN
 }
 
@@ -1108,6 +1298,108 @@ SCHOOL_OF_ABJURATION = Subclass(
     ]
 )
 
+SCHOOL_OF_CONJURATION = Subclass(
+    name="School of Conjuration",
+    class_name="Wizard",
+    description="As a conjurer, you favor spells that produce objects and creatures out of thin air. You can conjure billowing clouds of killing fog or summon creatures from elsewhere to fight on your behalf.",
+    selection_level=2,
+    features=[
+        SubclassFeature(
+            name="Conjuration Savant",
+            level=2,
+            description="The gold and time you must spend to copy a conjuration spell into your spellbook is halved."
+        ),
+        SubclassFeature(
+            name="Minor Conjuration",
+            level=2,
+            description="You can use your action to conjure up an inanimate object in your hand or on the ground within 10 feet of you. This object can be no larger than 3 feet on a side and weigh no more than 10 pounds, and its form must be that of a nonmagical object that you have seen. The object disappears after 1 hour, when you use this feature again, or if it takes or deals any damage."
+        ),
+        SubclassFeature(
+            name="Benign Transposition",
+            level=6,
+            description="As an action, you can teleport up to 30 feet to an unoccupied space you can see. Alternatively, you can choose a space within range that is occupied by a Small or Medium creature. If that creature is willing, you both teleport, swapping places. Once you use this feature, you can't use it again until you finish a long rest or you cast a conjuration spell of 1st level or higher."
+        ),
+        SubclassFeature(
+            name="Focused Conjuration",
+            level=10,
+            description="While you are concentrating on a conjuration spell, your concentration can't be broken as a result of taking damage."
+        ),
+        SubclassFeature(
+            name="Durable Summons",
+            level=14,
+            description="Any creature that you summon or create with a conjuration spell has 30 temporary hit points."
+        )
+    ]
+)
+
+SCHOOL_OF_DIVINATION = Subclass(
+    name="School of Divination",
+    class_name="Wizard",
+    description="The counsel of diviners is sought by royalty and commoners alike, for all seek a clearer understanding of the past, present, and future.",
+    selection_level=2,
+    features=[
+        SubclassFeature(
+            name="Divination Savant",
+            level=2,
+            description="The gold and time you must spend to copy a divination spell into your spellbook is halved."
+        ),
+        SubclassFeature(
+            name="Portent",
+            level=2,
+            description="Glimpses of the future begin to press in on your awareness. When you finish a long rest, roll two d20s and record the numbers rolled. You can replace any attack roll, saving throw, or ability check made by you or a creature you can see with one of these foretelling rolls."
+        ),
+        SubclassFeature(
+            name="Expert Divination",
+            level=6,
+            description="Casting divination spells comes so easily to you that it expends only a fraction of your spellcasting efforts. When you cast a divination spell of 2nd level or higher using a spell slot, you regain one expended spell slot. The slot you regain must be of a lower level than the spell you cast and can't be higher than 5th level."
+        ),
+        SubclassFeature(
+            name="The Third Eye",
+            level=10,
+            description="You can use your action to increase your powers of perception. When you do so, choose one benefit that lasts until you are incapacitated or you take a short or long rest: Darkvision, Ethereal Sight, Greater Comprehension, or See Invisibility."
+        ),
+        SubclassFeature(
+            name="Greater Portent",
+            level=14,
+            description="You can see even further into time's endless tapestry; you roll three d20s for your Portent feature, rather than two."
+        )
+    ]
+)
+
+SCHOOL_OF_ENCHANTMENT = Subclass(
+    name="School of Enchantment",
+    class_name="Wizard",
+    description="As a member of the School of Enchantment, you have honed your ability to magically entrance and beguile other creatures.",
+    selection_level=2,
+    features=[
+        SubclassFeature(
+            name="Enchantment Savant",
+            level=2,
+            description="The gold and time you must spend to copy an enchantment spell into your spellbook is halved."
+        ),
+        SubclassFeature(
+            name="Hypnotic Gaze",
+            level=2,
+            description="As an action, choose one creature you can see within 5 feet of you. If the target can see or hear you, it must succeed on a Wisdom saving throw against your wizard spell save DC or be charmed until the end of your next turn. The charmed creature's speed becomes 0, and the creature is incapacitated and visibly dazed."
+        ),
+        SubclassFeature(
+            name="Instinctive Charm",
+            level=6,
+            description="When a creature you can see within 30 feet of you makes an attack roll against you, you can use your reaction to divert the attack, provided another creature is within the attack's range. The attacker must make a Wisdom saving throw; on a failed save, the attacker must target the creature that is closest to it, not including you or itself."
+        ),
+        SubclassFeature(
+            name="Split Enchantment",
+            level=10,
+            description="When you cast an enchantment spell of 1st level or higher that targets only one creature, you can have it target a second creature."
+        ),
+        SubclassFeature(
+            name="Alter Memories",
+            level=14,
+            description="You gain the ability to make a creature unaware of your magical influence on it. When you cast an enchantment spell to charm one or more creatures, you can alter one of the creature's understanding so that the charm is not remembered."
+        )
+    ]
+)
+
 SCHOOL_OF_EVOCATION = Subclass(
     name="School of Evocation",
     class_name="Wizard",
@@ -1142,9 +1434,117 @@ SCHOOL_OF_EVOCATION = Subclass(
     ]
 )
 
+SCHOOL_OF_ILLUSION = Subclass(
+    name="School of Illusion",
+    class_name="Wizard",
+    description="You focus on magic that dazzles the senses, befuddles the mind, and tricks even the wisest folk.",
+    selection_level=2,
+    features=[
+        SubclassFeature(
+            name="Illusion Savant",
+            level=2,
+            description="The gold and time you must spend to copy an illusion spell into your spellbook is halved."
+        ),
+        SubclassFeature(
+            name="Improved Minor Illusion",
+            level=2,
+            description="You learn the Minor Illusion cantrip if you don't already know it. When you cast it, you can create both a sound and an image with a single casting of the spell."
+        ),
+        SubclassFeature(
+            name="Malleable Illusions",
+            level=6,
+            description="When you cast an illusion spell that has a duration of 1 minute or longer, you can use your action to change the nature of that illusion (using the spell's normal parameters for the illusion), provided that you can see the illusion."
+        ),
+        SubclassFeature(
+            name="Illusory Self",
+            level=10,
+            description="You can create an illusory duplicate of yourself as an instant, almost instinctual reaction to danger. When a creature makes an attack roll against you, you can use your reaction to interpose the illusory duplicate between the attacker and yourself, causing the attack to automatically miss you."
+        ),
+        SubclassFeature(
+            name="Illusory Reality",
+            level=14,
+            description="You have learned the secret of weaving shadow magic into your illusions to give them a semi-reality. When you cast an illusion spell of 1st level or higher, you can choose one inanimate, nonmagical object that is part of the illusion and make that object real."
+        )
+    ]
+)
+
+SCHOOL_OF_NECROMANCY = Subclass(
+    name="School of Necromancy",
+    class_name="Wizard",
+    description="The School of Necromancy explores the cosmic forces of life, death, and undeath. As you focus your studies in this tradition, you learn to manipulate the energy that animates all living things.",
+    selection_level=2,
+    features=[
+        SubclassFeature(
+            name="Necromancy Savant",
+            level=2,
+            description="The gold and time you must spend to copy a necromancy spell into your spellbook is halved."
+        ),
+        SubclassFeature(
+            name="Grim Harvest",
+            level=2,
+            description="Once per turn when you kill one or more creatures with a spell of 1st level or higher, you regain hit points equal to twice the spell's level, or three times its level if the spell belongs to the school of necromancy."
+        ),
+        SubclassFeature(
+            name="Undead Thralls",
+            level=6,
+            description="You add the Animate Dead spell to your spellbook if it is not there already. When you cast Animate Dead, you can create one additional undead creature. Additionally, undead you raise or create with a necromancy spell gain additional hit points equal to your wizard level, and they add your proficiency bonus to their damage rolls."
+        ),
+        SubclassFeature(
+            name="Inured to Undeath",
+            level=10,
+            description="You have resistance to necrotic damage, and your hit point maximum can't be reduced."
+        ),
+        SubclassFeature(
+            name="Command Undead",
+            level=14,
+            description="You can use magic to bring undead under your control, even those created by other wizards. As an action, you can choose one undead that you can see within 60 feet of you. That creature must make a Charisma saving throw against your wizard spell save DC. If it succeeds, you can't use this feature on it again. If it fails, it becomes friendly to you and obeys your commands until you use this feature again."
+        )
+    ]
+)
+
+SCHOOL_OF_TRANSMUTATION = Subclass(
+    name="School of Transmutation",
+    class_name="Wizard",
+    description="You are a student of spells that modify energy and matter. To you, the world is not a fixed thing but eminently mutable, and you delight in bending reality to your will.",
+    selection_level=2,
+    features=[
+        SubclassFeature(
+            name="Transmutation Savant",
+            level=2,
+            description="The gold and time you must spend to copy a transmutation spell into your spellbook is halved."
+        ),
+        SubclassFeature(
+            name="Minor Alchemy",
+            level=2,
+            description="You can temporarily alter the physical properties of one nonmagical object, changing it from one substance into another. You perform a special alchemical procedure on an object composed entirely of wood, stone, iron, copper, or silver, transforming it into a different one of those materials."
+        ),
+        SubclassFeature(
+            name="Transmuter's Stone",
+            level=6,
+            description="You can spend 8 hours creating a transmuter's stone that stores transmutation magic. While carrying the stone, you can benefit from one effect of your choice: darkvision, an increase to speed, proficiency in Constitution saving throws, or resistance to a damage type."
+        ),
+        SubclassFeature(
+            name="Shapechanger",
+            level=10,
+            description="You add the Polymorph spell to your spellbook if it is not there already. You can cast Polymorph without expending a spell slot, targeting only yourself, and you regain the ability to do so when you finish a short or long rest."
+        ),
+        SubclassFeature(
+            name="Master Transmuter",
+            level=14,
+            description="You can use your action to consume the reserves of transmutation magic stored within your transmuter's stone in a single burst. When you do so, you choose one of several powerful transformations: Major Transformation, Panacea, Restore Life, or Restore Youth."
+        )
+    ]
+)
+
 WIZARD_SUBCLASSES = {
     "School of Abjuration": SCHOOL_OF_ABJURATION,
-    "School of Evocation": SCHOOL_OF_EVOCATION
+    "School of Conjuration": SCHOOL_OF_CONJURATION,
+    "School of Divination": SCHOOL_OF_DIVINATION,
+    "School of Enchantment": SCHOOL_OF_ENCHANTMENT,
+    "School of Evocation": SCHOOL_OF_EVOCATION,
+    "School of Illusion": SCHOOL_OF_ILLUSION,
+    "School of Necromancy": SCHOOL_OF_NECROMANCY,
+    "School of Transmutation": SCHOOL_OF_TRANSMUTATION
 }
 
 # Dicionário mestre de todas as subclasses
