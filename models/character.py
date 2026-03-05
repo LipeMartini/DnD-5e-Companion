@@ -416,7 +416,7 @@ class Character:
         """Verifica se a classe prepara magias (vs conhece magias)"""
         if not self.character_class:
             return False
-        return SpellSlotTable.uses_prepared_spells(self)
+        return SpellSlotTable.uses_prepared_spells(self.character_class.name)
     
     def get_max_prepared_spells(self) -> int:
         """Retorna o número máximo de magias que podem ser preparadas"""
