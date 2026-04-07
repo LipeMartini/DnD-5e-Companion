@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
                              QPushButton, QSpinBox, QMessageBox, QFrame, QLineEdit)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QPalette, QColor
-from models import Character
+from models import Character, DiceRoller
 from models.expertise_rules import get_expertise_choices_for_level
 from .dice_history_window import DiceHistoryWindow
 from .inventory_window import InventoryWindow
@@ -11,6 +11,7 @@ from .advanced_edit_window import AdvancedEditWindow
 from .fighting_style_dialog import FightingStyleDialog
 from .feat_dialog import FeatDialog
 from .expertise_selection_dialog import ExpertiseSelectionDialog
+from .optional_content_dialog import OptionalContentDialog
 
 class CharacterSheetTab(QWidget):
     character_updated = pyqtSignal()
@@ -283,6 +284,24 @@ class CharacterSheetTab(QWidget):
         """)
         edit_btn.clicked.connect(self.open_advanced_edit)
         top_header.addWidget(edit_btn)
+
+        content_btn = QPushButton("📘 Conteúdos Extras")
+        content_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #3E2723;
+                color: #F5EBDC;
+                border: 2px solid #1B1411;
+                border-radius: 5px;
+                padding: 5px 10px;
+                font-weight: bold;
+                font-size: 10px;
+            }
+            QPushButton:hover {
+                background-color: #5A3A32;
+            }
+        """)
+        content_btn.clicked.connect(self.open_optional_content_dialog)
+        top_header.addWidget(content_btn)
         
         top_header.addStretch()
         
@@ -322,6 +341,19 @@ class CharacterSheetTab(QWidget):
         header_layout.addWidget(self.info_label)
         
         return header_frame
+
+    def open_optional_content_dialog(self):
+        dialog = OptionalContentDialog(self)
+        dialog.content_changed.connect(self.on_optional_content_changed)
+        dialog.exec()
+
+    def on_optional_content_changed(self):
+        """Atualiza seções dependentes de magias após mudar conteúdo opcional."""
+        from models import SpellDatabase
+
+        SpellDatabase.reload_cache()
+        self.update_spell_slots_display()
+        self.update_spells_display()
     
     def create_stats_section(self):
         """Cria seção de atributos com visual de escudo"""

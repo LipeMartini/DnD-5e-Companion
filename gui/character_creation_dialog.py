@@ -3,8 +3,10 @@ from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
                              QGroupBox, QLabel, QListWidget, QMessageBox, QScrollArea, QWidget)
 from PyQt6.QtCore import Qt
 from models import Character, RaceDatabase, SubraceDatabase, ClassDatabase, BackgroundDatabase, DiceRoller
+from models import SpellDatabase
 from models.expertise_rules import get_expertise_choices_for_level
 from .expertise_selection_dialog import ExpertiseSelectionDialog
+from .optional_content_dialog import OptionalContentDialog
 
 class CharacterCreationDialog(QDialog):
     def __init__(self, parent=None):
@@ -25,7 +27,12 @@ class CharacterCreationDialog(QDialog):
         main_layout.addWidget(scroll)
         
         layout = QVBoxLayout(scroll_widget)
-        
+
+        content_toggle_btn = QPushButton("📘 Conteúdos Extras")
+        content_toggle_btn.setStyleSheet("font-weight: bold; padding: 8px;")
+        content_toggle_btn.clicked.connect(self.open_optional_content_dialog)
+        layout.addWidget(content_toggle_btn)
+
         # Informações Básicas
         basic_group = QGroupBox("Informações Básicas")
         basic_layout = QFormLayout()
@@ -165,6 +172,15 @@ class CharacterCreationDialog(QDialog):
         button_layout.addWidget(cancel_btn)
         
         layout.addLayout(button_layout)
+
+    def open_optional_content_dialog(self):
+        dialog = OptionalContentDialog(self)
+        dialog.content_changed.connect(self.on_optional_content_changed)
+        dialog.exec()
+
+    def on_optional_content_changed(self):
+        SpellDatabase.reload_cache()
+
     
     def roll_single_stat(self, stat_name: str):
         total, rolls = DiceRoller.roll_ability_score()

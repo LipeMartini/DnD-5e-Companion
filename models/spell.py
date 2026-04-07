@@ -1,8 +1,10 @@
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 import json
 import os
 from pathlib import Path
+
+from .app_settings import AppSettings
 
 @dataclass
 class Spell:
@@ -54,8 +56,59 @@ class Spell:
 
 class SpellDatabase:
     """Banco de dados de magias disponíveis"""
-    
+
     _cache = None  # Cache em memória
+
+    OPTIONAL_SPELL_FILES: Dict[str, Tuple[str, str]] = {
+        "tashas_spells": ("spells_tcoe.json", "Tasha's Cauldron of Everything"),
+        "xanathars_spells": ("spells_xgte.json", "Xanathar's Guide to Everything"),
+    }
+
+    @staticmethod
+    def _load_optional_spell_packs() -> List[Tuple[str, Dict[str, Spell]]]:
+        """Carrega magias de arquivos opcionais com base nas configurações do usuário."""
+        optional_content = AppSettings.load().get("optional_content", {})
+        base_dir = Path(__file__).parent.parent / "data"
+        loaded_packs: List[Tuple[str, Dict[str, Spell]]] = []
+
+        for flag_key, (filename, source_label) in SpellDatabase.OPTIONAL_SPELL_FILES.items():
+            if not optional_content.get(flag_key, False):
+                continue
+
+            file_path = base_dir / filename
+            if not file_path.exists():
+                print(
+                    f"⚠️ Conteúdo opcional '{source_label}' habilitado, mas o arquivo {filename} não foi encontrado."
+                )
+                continue
+
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                pack_spells = {name: Spell(**spell_data) for name, spell_data in data.items()}
+                loaded_packs.append((source_label, pack_spells))
+            except Exception as e:
+                print(f"⚠️ Erro ao carregar magias opcionais de {source_label}: {e}")
+
+        return loaded_packs
+
+    @staticmethod
+    def _merge_optional_spells(spells: Dict[str, Spell]) -> None:
+        """Mescla magias opcionais ao dicionário principal, respeitando duplicatas."""
+        optional_packs = SpellDatabase._load_optional_spell_packs()
+        for source_label, pack_spells in optional_packs:
+            added = 0
+            skipped = 0
+            for name, spell in pack_spells.items():
+                if name in spells:
+                    skipped += 1
+                    continue
+                spells[name] = spell
+                added += 1
+            if added:
+                print(f"✅ {added} magias de {source_label} adicionadas (conteúdo opcional).")
+            if skipped:
+                print(f"ℹ️ {skipped} magias de {source_label} já existiam e foram mantidas.")
     
     @staticmethod
     def _load_from_cache() -> Dict[str, Spell]:
@@ -1680,13 +1733,31 @@ class SpellDatabase:
         # Tenta carregar do arquivo JSON
         cached_spells = SpellDatabase._load_from_cache()
         if cached_spells:
-            print(f"✅ {len(cached_spells)} magias carregadas do cache local (data/spells_cache.json)")
+            manual_spells = SpellDatabase._get_manual_spells()
+            missing_spells = []
+            for name, spell in manual_spells.items():
+                if name not in cached_spells:
+                    cached_spells[name] = spell
+                    missing_spells.append(name)
+
+            if missing_spells:
+                print(
+                    f"⚠️ Cache desatualizado: adicionando {len(missing_spells)} magias manuais "
+                    f"({', '.join(missing_spells[:5])}{'...' if len(missing_spells) > 5 else ''})"
+                )
+            else:
+                print(
+                    f"✅ {len(cached_spells)} magias carregadas do cache local (data/spells_cache.json)"
+                )
+
+            SpellDatabase._merge_optional_spells(cached_spells)
             SpellDatabase._cache = cached_spells
             return cached_spells
         
         # Fallback para magias manuais
         print("⚠️ Cache não encontrado, usando magias manuais")
         manual_spells = SpellDatabase._get_manual_spells()
+        SpellDatabase._merge_optional_spells(manual_spells)
         SpellDatabase._cache = manual_spells
         return manual_spells
     

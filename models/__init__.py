@@ -14,6 +14,7 @@ from .class_features import ClassFeature, CLASS_FEATURES, get_class_features, ge
 from .spell import Spell, SpellDatabase
 from .spellcasting import SpellcastingInfo, SpellSlotTable
 from .subclass import Subclass, SubclassFeature, SubclassDatabase
+from .app_settings import AppSettings
 
 __all__ = ['Character', 'Stats', 'Race', 'RaceDatabase', 'Subrace', 'SubraceDatabase', 
            'CharacterClass', 'ClassDatabase', 'Background', 'BackgroundDatabase', 'DiceRoller',
@@ -21,4 +22,4 @@ __all__ = ['Character', 'Stats', 'Race', 'RaceDatabase', 'Subrace', 'SubraceData
            'get_trait_description', 'TRAIT_DESCRIPTIONS',
            'ClassFeature', 'CLASS_FEATURES', 'get_class_features', 'get_all_features_up_to_level',
            'Spell', 'SpellDatabase', 'SpellcastingInfo', 'SpellSlotTable',
-           'Subclass', 'SubclassFeature', 'SubclassDatabase']
+           'Subclass', 'SubclassFeature', 'SubclassDatabase', 'AppSettings']
