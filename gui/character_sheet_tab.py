@@ -4,16 +4,19 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QPalette, QColor
 from models import Character, DiceRoller
+from models.fighting_styles import get_fighting_style
 from models.expertise_rules import get_expertise_choices_for_level
 from .dice_history_window import DiceHistoryWindow
 from .inventory_window import InventoryWindow
 from .advanced_edit_window import AdvancedEditWindow
 from .fighting_style_dialog import FightingStyleDialog
+from .cantrip_selection_dialog import CantripSelectionDialog
 from .eldritch_invocation_dialog import EldritchInvocationDialog
 from .pact_boon_dialog import PactBoonDialog
 from .feat_dialog import FeatDialog
 from .expertise_selection_dialog import ExpertiseSelectionDialog
 from .optional_content_dialog import OptionalContentDialog
+from .ranger_optional_features_dialog import apply_ranger_optional_features
 
 class CharacterSheetTab(QWidget):
     character_updated = pyqtSignal()
@@ -1338,47 +1341,91 @@ class CharacterSheetTab(QWidget):
             child = self.features_container_layout.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
-        
-        # Adiciona Fighting Styles se existirem
+
+        # Features principais da classe
+        if self.character.class_features:
+            for feature_name in self.character.class_features:
+                feature_layout = QHBoxLayout()
+                feature_layout.setContentsMargins(0, 0, 0, 0)
+                feature_layout.setSpacing(5)
+
+                feature_label = QLabel(f"• {feature_name}")
+                feature_label.setFont(QFont("Georgia", 10))
+                feature_label.setStyleSheet("background-color: transparent; color: #3E2723;")
+                feature_layout.addWidget(feature_label)
+
+                feature_layout.addStretch()
+
+                info_icon = QLabel("ℹ️")
+                info_icon.setFont(QFont("Georgia", 10))
+                info_icon.setStyleSheet(
+                    """
+                    background-color: transparent;
+                    color: #4A90E2;
+                    padding: 2px;
+                    """
+                )
+                info_icon.setCursor(Qt.CursorShape.WhatsThisCursor)
+
+                description = self.character.get_class_feature_description(feature_name)
+                info_icon.setToolTip(f"<b>{feature_name}</b><br><br>{description}")
+
+                feature_layout.addWidget(info_icon)
+
+                feature_widget = QWidget()
+                feature_widget.setLayout(feature_layout)
+                feature_widget.setStyleSheet("background-color: transparent;")
+
+                self.features_container_layout.addWidget(feature_widget)
+
+            separator = QFrame()
+            separator.setFrameShape(QFrame.Shape.HLine)
+            separator.setStyleSheet("background-color: #D2B48C; max-height: 1px;")
+            self.features_container_layout.addWidget(separator)
+        else:
+            placeholder = QLabel("Nenhuma feature de classe registrada")
+            placeholder.setStyleSheet("color: #999; font-style: italic; padding: 5px;")
+            self.features_container_layout.addWidget(placeholder)
+
+        # Fighting Styles
         if self.character.fighting_styles:
             from models.fighting_styles import get_fighting_style
-            
+
             for style_name in self.character.fighting_styles:
                 style = get_fighting_style(style_name)
-                if style:
-                    fighting_style_layout = QHBoxLayout()
-                    fighting_style_layout.setContentsMargins(0, 0, 0, 0)
-                    fighting_style_layout.setSpacing(5)
-                    
-                    # Label do Fighting Style com destaque
-                    style_label = QLabel(f"⚔️ Fighting Style: {style.name}")
-                    style_label.setFont(QFont("Georgia", 10, QFont.Weight.Bold))
-                    style_label.setStyleSheet("background-color: transparent; color: #8B4513;")
-                    fighting_style_layout.addWidget(style_label)
-                    
-                    fighting_style_layout.addStretch()
-                    
-                    # Ícone informativo com tooltip
-                    info_icon = QLabel("ℹ️")
-                    info_icon.setFont(QFont("Georgia", 10))
-                    info_icon.setStyleSheet("""
-                        background-color: transparent; 
-                        color: #4A90E2;
-                        padding: 2px;
-                    """)
-                    info_icon.setCursor(Qt.CursorShape.WhatsThisCursor)
-                    info_icon.setToolTip(f"<b>{style.name}</b><br><br>{style.description}")
-                    
-                    fighting_style_layout.addWidget(info_icon)
-                    
-                    # Container para o layout
-                    style_widget = QWidget()
-                    style_widget.setLayout(fighting_style_layout)
-                    style_widget.setStyleSheet("background-color: transparent;")
-                    
-                    self.features_container_layout.addWidget(style_widget)
-            
-            # Adiciona separador após todos os Fighting Styles
+                if not style:
+                    continue
+
+                fighting_style_layout = QHBoxLayout()
+                fighting_style_layout.setContentsMargins(0, 0, 0, 0)
+                fighting_style_layout.setSpacing(5)
+
+                style_label = QLabel(f"⚔️ Fighting Style: {style.name}")
+                style_label.setFont(QFont("Georgia", 10, QFont.Weight.Bold))
+                style_label.setStyleSheet("background-color: transparent; color: #8B4513;")
+                fighting_style_layout.addWidget(style_label)
+
+                fighting_style_layout.addStretch()
+
+                info_icon = QLabel("ℹ️")
+                info_icon.setFont(QFont("Georgia", 10))
+                info_icon.setStyleSheet(
+                    """
+                    background-color: transparent;
+                    color: #4A90E2;
+                    padding: 2px;
+                    """
+                )
+                info_icon.setCursor(Qt.CursorShape.WhatsThisCursor)
+                info_icon.setToolTip(f"<b>{style.name}</b><br><br>{style.description}")
+
+                fighting_style_layout.addWidget(info_icon)
+
+                style_widget = QWidget()
+                style_widget.setLayout(fighting_style_layout)
+                style_widget.setStyleSheet("background-color: transparent;")
+                self.features_container_layout.addWidget(style_widget)
+
             separator = QFrame()
             separator.setFrameShape(QFrame.Shape.HLine)
             separator.setStyleSheet("background-color: #D2B48C; max-height: 1px;")
@@ -1510,7 +1557,15 @@ class CharacterSheetTab(QWidget):
                 subclass_layout.setSpacing(5)
                 
                 # Label da Subclasse com destaque
-                subclass_label = QLabel(f"🎭 Subclasse: {subclass.name}")
+                source_label = SubclassDatabase.get_source_label(subclass)
+                optional_badge = ""
+                if SubclassDatabase.is_optional_source(subclass):
+                    optional_badge = " • Conteúdo opcional"
+                subtitle = f"🎭 Subclasse: {subclass.name}"
+                if source_label:
+                    subtitle += f" ({source_label})"
+                subtitle += optional_badge
+                subclass_label = QLabel(subtitle)
                 subclass_label.setFont(QFont("Georgia", 10, QFont.Weight.Bold))
                 subclass_label.setStyleSheet("background-color: transparent; color: #4B0082;")
                 subclass_layout.addWidget(subclass_label)
@@ -1528,7 +1583,10 @@ class CharacterSheetTab(QWidget):
                 info_icon.setCursor(Qt.CursorShape.WhatsThisCursor)
                 
                 # Monta tooltip com descrição e features
-                tooltip_text = f"<b>{subclass.name}</b><br><br>{subclass.description}<br><br><b>Features:</b><br>"
+                tooltip_text = f"<b>{subclass.name}</b><br><br>{subclass.description}"
+                if source_label:
+                    tooltip_text += f"<br><br><i>Fonte: {source_label}</i>"
+                tooltip_text += "<br><br><b>Features:</b><br>"
                 features = subclass.get_all_features_up_to_level(self.character.level)
                 for feature in features:
                     tooltip_text += f"<br>• <b>{feature.name}</b> (Nível {feature.level})"
@@ -1540,166 +1598,62 @@ class CharacterSheetTab(QWidget):
                 subclass_widget = QWidget()
                 subclass_widget.setLayout(subclass_layout)
                 subclass_widget.setStyleSheet("background-color: transparent;")
-                
                 self.features_container_layout.addWidget(subclass_widget)
-                
-                # Adiciona separador após subclasse
+
                 separator = QFrame()
                 separator.setFrameShape(QFrame.Shape.HLine)
                 separator.setStyleSheet("background-color: #D2B48C; max-height: 1px;")
                 self.features_container_layout.addWidget(separator)
-        
+
         # Adiciona Feats se existirem
         if self.character.feats:
             from models.feats import get_feat
-            
+
             for feat_name in self.character.feats:
                 feat_layout = QHBoxLayout()
                 feat_layout.setContentsMargins(0, 0, 0, 0)
                 feat_layout.setSpacing(5)
-                
-                # Verifica se é um ASI (começa com "ASI:")
-                if feat_name.startswith("ASI:"):
-                    # Label do ASI com destaque
-                    feat_label = QLabel(f"⭐ {feat_name}")
-                    feat_label.setFont(QFont("Georgia", 10, QFont.Weight.Bold))
-                    feat_label.setStyleSheet("background-color: transparent; color: #DAA520;")
-                    feat_layout.addWidget(feat_label)
-                    
-                    feat_layout.addStretch()
-                    
-                    # Ícone informativo com tooltip
-                    info_icon = QLabel("ℹ️")
-                    info_icon.setFont(QFont("Georgia", 10))
-                    info_icon.setStyleSheet("""
-                        background-color: transparent; 
-                        color: #4A90E2;
-                        padding: 2px;
-                    """)
-                    info_icon.setCursor(Qt.CursorShape.WhatsThisCursor)
-                    info_icon.setToolTip("<b>Ability Score Improvement</b><br><br>Você aumentou seus atributos.")
-                    
-                    feat_layout.addWidget(info_icon)
+
+                feat_label = QLabel(f"⭐ Feat: {feat_name}")
+                feat_label.setFont(QFont("Georgia", 10, QFont.Weight.Bold))
+                feat_label.setStyleSheet("background-color: transparent; color: #DAA520;")
+                feat_layout.addWidget(feat_label)
+
+                feat_layout.addStretch()
+
+                feat_data = get_feat(feat_name)
+                info_icon = QLabel("ℹ️")
+                info_icon.setFont(QFont("Georgia", 10))
+                info_icon.setStyleSheet(
+                    """
+                    background-color: transparent;
+                    color: #4A90E2;
+                    padding: 2px;
+                    """
+                )
+                info_icon.setCursor(Qt.CursorShape.WhatsThisCursor)
+
+                if feat_data:
+                    description = feat_data.description.replace("\n", "<br>")
+                    mechanical = feat_data.mechanical_effect.replace("\n", "<br>")
+                    info_icon.setToolTip(
+                        f"<b>{feat_data.name}</b><br><br>{description}<br><br><i>{mechanical}</i>"
+                    )
                 else:
-                    # Feat normal
-                    feat = get_feat(feat_name)
-                    if feat:
-                        # Label do Feat com destaque
-                        feat_label = QLabel(f"⭐ Feat: {feat.name}")
-                        feat_label.setFont(QFont("Georgia", 10, QFont.Weight.Bold))
-                        feat_label.setStyleSheet("background-color: transparent; color: #DAA520;")
-                        feat_layout.addWidget(feat_label)
-                        
-                        feat_layout.addStretch()
-                        
-                        # Ícone informativo com tooltip
-                        info_icon = QLabel("ℹ️")
-                        info_icon.setFont(QFont("Georgia", 10))
-                        info_icon.setStyleSheet("""
-                            background-color: transparent; 
-                            color: #4A90E2;
-                            padding: 2px;
-                        """)
-                        info_icon.setCursor(Qt.CursorShape.WhatsThisCursor)
-                        info_icon.setToolTip(f"<b>{feat.name}</b><br><br>{feat.description}<br><br><i>{feat.mechanical_effect.replace(chr(10), '<br>')}</i>")
-                        
-                        feat_layout.addWidget(info_icon)
-                    else:
-                        # Feat não encontrado, apenas mostra o nome
-                        feat_label = QLabel(f"⭐ Feat: {feat_name}")
-                        feat_label.setFont(QFont("Georgia", 10, QFont.Weight.Bold))
-                        feat_label.setStyleSheet("background-color: transparent; color: #DAA520;")
-                        feat_layout.addWidget(feat_label)
-                        feat_layout.addStretch()
-                
-                # Container para o layout
+                    info_icon.setToolTip(f"<b>{feat_name}</b><br><br>Descrição não disponível.")
+
+                feat_layout.addWidget(info_icon)
+
                 feat_widget = QWidget()
                 feat_widget.setLayout(feat_layout)
                 feat_widget.setStyleSheet("background-color: transparent;")
-                
                 self.features_container_layout.addWidget(feat_widget)
-            
-            # Adiciona separador após todos os Feats
+
             separator = QFrame()
             separator.setFrameShape(QFrame.Shape.HLine)
             separator.setStyleSheet("background-color: #D2B48C; max-height: 1px;")
             self.features_container_layout.addWidget(separator)
         
-        if not self.character.class_features:
-            no_features = QLabel("Nenhuma feature")
-            no_features.setStyleSheet("color: #999; font-style: italic; padding: 5px;")
-            self.features_container_layout.addWidget(no_features)
-            return
-        
-        # Adiciona cada feature com ícone informativo
-        for feature_name in self.character.class_features:
-            # Pula "Ability Score Improvement" pois é tratado pelo sistema de Feats
-            if feature_name == "Ability Score Improvement":
-                continue
-            
-            feature_layout = QHBoxLayout()
-            feature_layout.setContentsMargins(0, 0, 0, 0)
-            feature_layout.setSpacing(5)
-            
-            # Bullet point e nome da feature
-            feature_label = QLabel(f"• {feature_name}")
-            feature_label.setFont(QFont("Georgia", 10))
-            feature_label.setStyleSheet("background-color: transparent; color: #654321;")
-            feature_layout.addWidget(feature_label)
-            
-            feature_layout.addStretch()
-            
-            # Ícone informativo com tooltip
-            info_icon = QLabel("ℹ️")
-            info_icon.setFont(QFont("Georgia", 10))
-            info_icon.setStyleSheet("""
-                background-color: transparent; 
-                color: #4A90E2;
-                padding: 2px;
-            """)
-            info_icon.setCursor(Qt.CursorShape.WhatsThisCursor)
-            
-            # Verifica se é uma feature de subclasse (formato: "Nome (Subclasse)")
-            description = None
-            if "(" in feature_name and ")" in feature_name:
-                # É uma feature de subclasse
-                from models import SubclassDatabase
-                
-                # Extrai nome da feature e nome da subclasse
-                base_feature_name = feature_name.split(" (")[0]
-                subclass_name = feature_name.split("(")[1].rstrip(")")
-                
-                # Busca a subclasse
-                if self.character.character_class:
-                    subclass = SubclassDatabase.get_subclass(
-                        self.character.character_class.name,
-                        subclass_name
-                    )
-                    if subclass:
-                        # Busca a feature específica
-                        for feature in subclass.features:
-                            if feature.name == base_feature_name:
-                                description = feature.description
-                                break
-            else:
-                # É uma feature de classe normal
-                description = self.character.get_class_feature_description(feature_name)
-            
-            # Define o tooltip
-            if description:
-                info_icon.setToolTip(f"<b>{feature_name}</b><br><br>{description}")
-            else:
-                info_icon.setToolTip(f"<b>{feature_name}</b><br><br>Descrição não disponível.")
-            
-            feature_layout.addWidget(info_icon)
-            
-            # Container para o layout
-            feature_widget = QWidget()
-            feature_widget.setLayout(feature_layout)
-            feature_widget.setStyleSheet("background-color: transparent;")
-            
-            self.features_container_layout.addWidget(feature_widget)
-    
     def check_and_select_eldritch_invocations(self, level: int):
         """Garante que Warlocks escolham novas Eldritch Invocations no nível correto."""
         if not self.character.character_class or self.character.character_class.name != "Warlock":
@@ -2649,6 +2603,7 @@ class CharacterSheetTab(QWidget):
                 self.character.character_class.name,
                 new_level
             )
+        new_features = apply_ranger_optional_features(self, self.character, new_features)
         
         # Adicionar features de subclasse do novo nível (se tiver subclasse)
         if self.character.subclass_name:
@@ -2685,20 +2640,12 @@ class CharacterSheetTab(QWidget):
                 f"Você ganhou as seguintes features de classe:\n\n{features_text}\n\n"
                 f"Confira a seção de Features de Classe na ficha para mais detalhes."
             )
-        
+
         # DEPOIS das features, verificar escolhas em ordem:
-        # 1. Expertise (Rogue/Bard)
         self.check_and_select_expertise(new_level)
-        # 2. Fighting Style
         self.check_and_select_fighting_style(new_level)
-        
-        # 3. Additional Fighting Style (Champion nível 10)
         self.check_champion_additional_fighting_style(new_level)
-
-        # 4. Pact Boon (Warlock)
         self.check_and_select_pact_boon(new_level)
-
-        # 5. Eldritch Invocations (Warlock)
         self.check_and_select_eldritch_invocations(new_level)
         
         # 6. Subclasse
@@ -2741,114 +2688,185 @@ class CharacterSheetTab(QWidget):
                     self.character.skill_expertise.append(skill)
             self.update_display()
             self.character_updated.emit()
-    
+            
     def check_and_select_fighting_style(self, level: int):
         """Verifica se o personagem ganhou Fighting Style e permite seleção"""
         if not self.character.character_class:
             return
-        
+
         class_name = self.character.character_class.name
-        
-        # Verificar se ganhou Fighting Style neste nível
         should_get_style = False
-        
+
         if class_name == "Fighter" and level == 1:
             should_get_style = True
         elif class_name == "Ranger" and level == 2:
             should_get_style = True
         elif class_name == "Paladin" and level == 2:
             should_get_style = True
-        
-        # Se já tem um Fighting Style dessa classe neste nível, não oferece novamente
-        # (evita duplicação ao recarregar personagem)
+
         if should_get_style and len(self.character.fighting_styles) > 0:
             return
-        
+
         if should_get_style:
-            # Abrir dialog de seleção
             dialog = FightingStyleDialog(class_name, self)
             if dialog.exec():
                 selected_style = dialog.get_selected_style()
-                if selected_style and selected_style not in self.character.fighting_styles:
-                    self.character.fighting_styles.append(selected_style)
-                    self.update_display()
-                    self.character_updated.emit()
-                    
-                    QMessageBox.information(
-                        self,
-                        "Fighting Style Selecionado",
-                        f"Você escolheu o Fighting Style: <b>{selected_style}</b>\n\n"
-                        f"Este estilo de luta agora faz parte do seu personagem!"
-                    )
-    
+                if selected_style:
+                    self._finalize_fighting_style_choice(selected_style)
+
     def check_champion_additional_fighting_style(self, level: int):
         """Verifica se Champion nível 10 deve ganhar segundo Fighting Style"""
         if not self.character.character_class:
             return
-        
-        # Apenas para Champion no nível 10
+
         if self.character.subclass_name != "Champion" or level != 10:
             return
-        
-        # Se já tem 2 ou mais Fighting Styles, não oferece novamente
+
         if len(self.character.fighting_styles) >= 2:
             return
-        
-        # Abrir dialog de seleção
-        from gui.fighting_style_dialog import FightingStyleDialog
-        
+
         dialog = FightingStyleDialog("Fighter", self)
         dialog.setWindowTitle("Champion - Additional Fighting Style")
-        
+
         if dialog.exec():
             selected_style = dialog.get_selected_style()
-            if selected_style and selected_style not in self.character.fighting_styles:
-                self.character.fighting_styles.append(selected_style)
-                self.update_display()
-                self.character_updated.emit()
-                
-                QMessageBox.information(
-                    self,
-                    "Additional Fighting Style",
-                    f"Você escolheu um segundo Fighting Style: <b>{selected_style}</b>\n\n"
-                    f"Como Champion, você agora possui múltiplos estilos de combate!"
-                )
-    
+            if selected_style:
+                self._finalize_fighting_style_choice(selected_style)
+
+    def _finalize_fighting_style_choice(self, style_name: str) -> bool:
+        """Aplica o Fighting Style escolhido e lida com truques extras se necessário."""
+
+        if not style_name:
+            return False
+
+        if style_name in self.character.fighting_styles:
+            QMessageBox.information(
+                self,
+                "Fighting Style já aprendido",
+                "Este personagem já possui o estilo selecionado.",
+            )
+            return False
+
+        style_obj = get_fighting_style(style_name)
+        cantrip_choices = None
+
+        if style_obj and style_obj.grants_cantrips:
+            cantrip_choices = self._prompt_cantrip_selection(style_obj)
+            if cantrip_choices is None:
+                return False
+
+        self.character.fighting_styles.append(style_name)
+
+        if cantrip_choices:
+            if not self._apply_fighting_style_cantrips(cantrip_choices):
+                self.character.fighting_styles.remove(style_name)
+                return False
+
+        self.update_display()
+        self.character_updated.emit()
+
+        message = (
+            f"Você escolheu o Fighting Style: <b>{style_name}</b>\n\n"
+            "Este estilo de luta agora faz parte do seu personagem!"
+        )
+        if cantrip_choices:
+            message += "\n\nTruques aprendidos: " + ", ".join(cantrip_choices)
+
+        QMessageBox.information(self, "Fighting Style Selecionado", message)
+        return True
+
+    def _prompt_cantrip_selection(self, style_obj):
+        excluded = []
+        if self.character.spellcasting and self.character.spellcasting.known_cantrips:
+            excluded = list(self.character.spellcasting.known_cantrips)
+
+        dialog = CantripSelectionDialog(
+            spell_class=style_obj.cantrip_source_class,
+            quantity=style_obj.cantrip_quantity,
+            parent=self,
+            excluded_spells=excluded,
+        )
+
+        if not dialog.has_sufficient_options():
+            QMessageBox.warning(
+                self,
+                "Truques indisponíveis",
+                "Não há truques suficientes disponíveis para concluir esta seleção.",
+            )
+            return None
+
+        if dialog.exec():
+            return dialog.get_selected_cantrips()
+        return None
+
+    def _apply_fighting_style_cantrips(self, cantrips):
+        if not cantrips:
+            return True
+
+        if not self.character.spellcasting:
+            self.character.initialize_spellcasting()
+
+        if not self.character.spellcasting:
+            QMessageBox.warning(
+                self,
+                "Conjuração ausente",
+                "Não foi possível atualizar os truques do personagem.",
+            )
+            return False
+
+        known = self.character.spellcasting.known_cantrips
+        for cantrip in cantrips:
+            if cantrip not in known:
+                known.append(cantrip)
+
+        return True
+
     def check_and_select_subclass(self, level: int):
-        """Verifica se o personagem deve escolher subclasse e permite seleção"""
+        """Verifica se personagem está em nível de subclasse mas não tem uma escolhida"""
         from models import SubclassDatabase
         from gui.subclass_dialog import SubclassDialog
-        
+
         if not self.character.character_class:
             return
-        
-        # Verifica se já tem subclasse
+
         if self.character.subclass_name:
             return
-        
+
         class_name = self.character.character_class.name
         selection_level = SubclassDatabase.get_selection_level(class_name)
-        
-        # Verifica se atingiu o nível de seleção
-        if level != selection_level:
+
+        if self.character.level < selection_level:
             return
-        
-        # Verifica se há subclasses disponíveis para esta classe
+
         available_subclasses = SubclassDatabase.get_subclasses_for_class(class_name)
         if not available_subclasses:
             return
-        
-        # Abrir dialog de seleção
+
         dialog = SubclassDialog(self.character, self)
         if dialog.exec():
-            selected_subclass = dialog.get_selected_subclass()
-            if selected_subclass:
-                self.character.subclass_name = selected_subclass
-                
-                # Aplicar proficiências da subclasse
-                self.character.apply_subclass_proficiencies(selected_subclass)
-                
-                # Adicionar features da subclasse para o nível atual
+            selected_subclass, extra = dialog.get_selection()
+            if not selected_subclass:
+                return
+
+            self.character.subclass_name = selected_subclass
+
+            # Persistir arma escolhida do Bladesinger ANTES de aplicar proficiências
+            if extra and "bladesinger_weapon" in extra:
+                self.character.bladesinger_weapon = extra["bladesinger_weapon"]
+
+            self.character.apply_subclass_proficiencies(selected_subclass)
+
+            subclass = SubclassDatabase.get_subclass(class_name, selected_subclass)
+            if subclass:
+                features = subclass.get_all_features_up_to_level(self.character.level)
+                for feature in features:
+                    feature_text = f"{feature.name} ({selected_subclass})"
+                    if feature_text not in self.character.class_features:
+                        self.character.class_features.append(feature_text)
+
+            if selected_subclass == "College of Lore":
+                from gui.skill_selection_dialog import SkillSelectionDialog
+
                 subclass = SubclassDatabase.get_subclass(class_name, selected_subclass)
                 if subclass:
                     features = subclass.get_features_at_level(level)
@@ -2856,55 +2874,48 @@ class CharacterSheetTab(QWidget):
                         feature_text = f"{feature.name} ({selected_subclass})"
                         if feature_text not in self.character.class_features:
                             self.character.class_features.append(feature_text)
-                
-                # Verificar se precisa escolher skills adicionais (College of Lore)
-                if selected_subclass == "College of Lore":
-                    from gui.skill_selection_dialog import SkillSelectionDialog
-                    
-                    skill_dialog = SkillSelectionDialog(
-                        self.character,
-                        num_skills=3,
-                        title="College of Lore - Bonus Proficiencies",
-                        parent=self
-                    )
-                    
-                    if skill_dialog.exec():
-                        selected_skills = skill_dialog.get_selected_skills()
-                        for skill in selected_skills:
-                            if skill not in self.character.skill_proficiencies:
-                                self.character.skill_proficiencies.append(skill)
-                
-                # Configurar spellcasting para Eldritch Knight
-                if selected_subclass == "Eldritch Knight":
-                    self.setup_eldritch_knight_spellcasting()
-                
-                # Configurar spellcasting para Arcane Trickster
-                if selected_subclass == "Arcane Trickster":
-                    self.setup_arcane_trickster_spellcasting()
-                
-                self.update_display()
-                self.character_updated.emit()
-                
-                # Aviso especial para Battle Master
-                if selected_subclass == "Battle Master":
-                    QMessageBox.information(
-                        self,
-                        "Battle Master - Em Desenvolvimento",
-                        f"Você escolheu <b>Battle Master</b>!\n\n"
-                        f"⚠️ <b>Nota:</b> O sistema de manobras e superiority dice ainda está em desenvolvimento.\n\n"
-                        f"Por enquanto, você precisará gerenciar manualmente:\n"
-                        f"• Escolha de 3 manobras\n"
-                        f"• Superiority dice (4d8, depois 5d8 no nível 7, 6d8 no nível 15)\n"
-                        f"• Efeitos das manobras em combate\n\n"
-                        f"Use a seção de notas ou edição avançada para rastrear suas escolhas."
-                    )
-                else:
-                    QMessageBox.information(
-                        self,
-                        "Subclasse Selecionada",
-                        f"Você escolheu a subclasse: <b>{selected_subclass}</b>\n\n"
-                        f"Esta subclasse agora faz parte do seu personagem!"
-                    )
+
+                skill_dialog = SkillSelectionDialog(
+                    self.character,
+                    num_skills=3,
+                    title="College of Lore - Bonus Proficiencies",
+                    parent=self,
+                )
+
+                if skill_dialog.exec():
+                    selected_skills = skill_dialog.get_selected_skills()
+                    for skill in selected_skills:
+                        if skill not in self.character.skill_proficiencies:
+                            self.character.skill_proficiencies.append(skill)
+
+            if selected_subclass == "Eldritch Knight":
+                self.setup_eldritch_knight_spellcasting()
+
+            if selected_subclass == "Arcane Trickster":
+                self.setup_arcane_trickster_spellcasting()
+
+            self.update_display()
+            self.character_updated.emit()
+
+            if selected_subclass == "Battle Master":
+                QMessageBox.information(
+                    self,
+                    "Battle Master - Em Desenvolvimento",
+                    f"Você escolheu <b>Battle Master</b>!\n\n"
+                    f"⚠️ <b>Nota:</b> O sistema de manobras e superiority dice ainda está em desenvolvimento.\n\n"
+                    f"Por enquanto, você precisará gerenciar manualmente:\n"
+                    f"• Escolha de 3 manobras\n"
+                    f"• Superiority dice (4d8, depois 5d8 no nível 7, 6d8 no nível 15)\n"
+                    f"• Efeitos das manobras em combate\n\n"
+                    f"Use a seção de notas ou edição avançada para rastrear suas escolhas."
+                )
+            else:
+                QMessageBox.information(
+                    self,
+                    "Subclasse Selecionada",
+                    f"Você escolheu a subclasse: <b>{selected_subclass}</b>\n\n"
+                    f"Esta subclasse agora faz parte do seu personagem!"
+                )
     
     def check_missing_subclass(self):
         """Verifica se personagem está em nível de subclasse mas não tem uma escolhida"""
@@ -2933,10 +2944,14 @@ class CharacterSheetTab(QWidget):
         # Abrir dialog de seleção
         dialog = SubclassDialog(self.character, self)
         if dialog.exec():
-            selected_subclass = dialog.get_selected_subclass()
+            selected_subclass, extra = dialog.get_selection()
             if selected_subclass:
                 self.character.subclass_name = selected_subclass
-                
+
+                # Arma do Bladesinger precisa ser definida ANTES de aplicar proficiências
+                if extra and "bladesinger_weapon" in extra:
+                    self.character.bladesinger_weapon = extra["bladesinger_weapon"]
+
                 # Aplicar proficiências da subclasse
                 self.character.apply_subclass_proficiencies(selected_subclass)
                 

@@ -94,20 +94,31 @@ class SpellDatabase:
 
     @staticmethod
     def _merge_optional_spells(spells: Dict[str, Spell]) -> None:
-        """Mescla magias opcionais ao dicionário principal, respeitando duplicatas."""
+        """Mescla magias opcionais ao dicionário principal, expandindo listas de classe."""
         optional_packs = SpellDatabase._load_optional_spell_packs()
         for source_label, pack_spells in optional_packs:
             added = 0
+            expanded = 0
             skipped = 0
             for name, spell in pack_spells.items():
                 if name in spells:
-                    skipped += 1
+                    existing_spell = spells[name]
+                    new_classes = [cls for cls in spell.classes if cls not in existing_spell.classes]
+                    if new_classes:
+                        existing_spell.classes.extend(new_classes)
+                        expanded += 1
+                    else:
+                        skipped += 1
                     continue
                 spells[name] = spell
                 added += 1
             if added:
                 print(f"✅ {added} magias de {source_label} adicionadas (conteúdo opcional).")
-            if skipped:
+            if expanded:
+                print(
+                    f"🔁 {expanded} magias de {source_label} tiveram listas de classe expandidas (conteúdo opcional)."
+                )
+            if skipped and not expanded:
                 print(f"ℹ️ {skipped} magias de {source_label} já existiam e foram mantidas.")
     
     @staticmethod

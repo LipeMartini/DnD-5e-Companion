@@ -47,6 +47,23 @@ FIGHTER_FEATURES = {
     20: [ClassFeature('Extra Attack (3)', 'Você pode atacar quatro vezes quando realizar a ação de Ataque.', 20)]
 }
 
+OPTIONAL_FEATURE_DESCRIPTIONS = {
+    "Favored Foe": (
+        "Em vez de escolher inimigos favoritos, você pode marcar uma criatura que acertar "
+        "com um ataque e causar dano extra igual a 1d4 (aumenta em níveis superiores) um número de "
+        "vezes por descanso igual ao seu bônus de proficiência."
+    ),
+    "Deft Explorer": (
+        "Substitui Natural Explorer por benefícios escaláveis: Canny concede Expertise em uma perícia e "
+        "uma língua extra, Roving aumenta sua velocidade e concede escalada, e Tireless permite "
+        "recuperar pontos de vida temporários durante descansos curtos."
+    ),
+    "Spellcasting Focus": (
+        "Você pode usar um foco druídico como foco de conjuração para suas magias de Ranger, "
+        "além dos componentes materiais normais."
+    ),
+}
+
 
 # ========== WIZARD FEATURES ==========
 WIZARD_FEATURES = {

@@ -18,9 +18,15 @@ class FightingStyle:
     description: str
     classes: List[str]  # Classes que podem escolher este estilo
     source: str = "Player's Handbook"
+    cantrip_source_class: Optional[str] = None
+    cantrip_quantity: int = 0
 
     def __str__(self):
         return self.name
+
+    @property
+    def grants_cantrips(self) -> bool:
+        return bool(self.cantrip_source_class and self.cantrip_quantity > 0)
 
 
 # ========== FIGHTING STYLES ==========

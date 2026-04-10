@@ -10,6 +10,7 @@ from .dice import DiceRoller
 from .inventory import Inventory
 from .armor import Armor
 from .spellcasting import SpellcastingInfo, SpellSlotTable
+from .subclass import SubclassDatabase
 
 @dataclass
 class Character:
@@ -32,6 +33,8 @@ class Character:
     armor_class: int = 10
     initiative: int = 0
     speed: int = 30
+    manual_speed_override: Optional[int] = None
+    manual_initiative_override: Optional[int] = None
     
     proficiency_bonus: int = 2
     
@@ -66,6 +69,7 @@ class Character:
     
     # Subclass (Arquétipo de classe)
     subclass_name: Optional[str] = None
+    bladesinger_weapon: Optional[str] = None
     
     # Notas do personagem (organizadas por categoria)
     notes: Dict[str, str] = field(default_factory=dict)
@@ -175,6 +179,13 @@ class Character:
         # Atualiza DC e bônus de ataque de magias com base nos valores atuais
         self.update_spellcasting_stats()
 
+        # Reaplica valores manuais definidos via edição avançada, se existirem
+        if self.manual_speed_override is not None:
+            self.speed = self.manual_speed_override
+
+        if self.manual_initiative_override is not None:
+            self.initiative = self.manual_initiative_override
+
     def update_spellcasting_stats(self):
         """Recalcula CD e bônus de ataque de magia"""
         if not self.spellcasting:
@@ -244,7 +255,14 @@ class Character:
             'Cajado': 'Quarterstaff',
             'Lança': 'Spear',
             'Clava': 'Club',
+            'Grande Clava': 'Greatclub',
+            'Machadinha': 'Handaxe',
+            'Azagaia': 'Javelin',
+            'Martelo Leve': 'Light Hammer',
             'Maça': 'Mace',
+            'Foice': 'Sickle',
+            'Dardo': 'Dart',
+            'Funda': 'Sling',
             'Rapieira': 'Rapier',
             'Cimitarra': 'Scimitar',
             'Tridente': 'Trident',
@@ -255,6 +273,7 @@ class Character:
             'Estrela da Manhã': 'Morningstar',
             'Pique': 'Pike',
             'Malho': 'Maul',
+            'Picareta de Guerra': 'War Pick',
             'Chicote': 'Whip',
             'Besta de Mão': 'Hand Crossbow',
             'Besta Pesada': 'Heavy Crossbow',
@@ -560,14 +579,48 @@ class Character:
                 "armor": ["Medium Armor", "Shields"],
                 "weapon": ["Martial Weapons"]
             },
+            "College of Swords": {
+                "armor": ["Medium Armor"],
+                "weapon": ["Scimitar"]
+            },
             # Cleric
             "Life Domain": {
                 "armor": ["Heavy Armor"],
                 "weapon": []
             },
+            "Nature Domain": {
+                "armor": ["Heavy Armor"],
+                "weapon": []
+            },
+            "Tempest Domain": {
+                "armor": ["Heavy Armor"],
+                "weapon": ["Martial Weapons"]
+            },
             "War Domain": {
                 "armor": ["Heavy Armor"],
                 "weapon": ["Martial Weapons"]
+            },
+            "Forge Domain": {
+                "armor": ["Heavy Armor"],
+                "weapon": []
+            },
+            "Order Domain": {
+                "armor": ["Heavy Armor"],
+                "weapon": []
+            },
+            "Twilight Domain": {
+                "armor": ["Heavy Armor"],
+                "weapon": ["Martial Weapons"]
+            },
+            # Warlock
+            "The Hexblade": {
+                "armor": ["Medium Armor", "Shields"],
+                "weapon": ["Martial Weapons"]
+            },
+            # Wizard
+            "Bladesinging": {
+                "armor": ["Light Armor"],
+                "weapon": [self.bladesinger_weapon] if getattr(self, "bladesinger_weapon", None) else ["Longsword"]
             }
         }
         
@@ -611,7 +664,7 @@ class Character:
         Returns:
             Descrição da feature ou mensagem padrão
         """
-        from .class_features import get_all_features_up_to_level
+        from .class_features import get_all_features_up_to_level, OPTIONAL_FEATURE_DESCRIPTIONS
         
         if not self.character_class:
             return "Nenhuma classe selecionada."
@@ -622,6 +675,23 @@ class Character:
             if feature.name == feature_name:
                 return feature.description
         
+        subclass_feature_name = feature_name
+        subclass_name = None
+        if feature_name.endswith(")") and "(" in feature_name:
+            base_name, possible_subclass = feature_name.rsplit("(", 1)
+            subclass_feature_name = base_name.strip()
+            subclass_name = possible_subclass.rstrip(")").strip()
+        if subclass_name and self.character_class:
+            subclass = SubclassDatabase.get_subclass(self.character_class.name, subclass_name)
+            if subclass:
+                for feature in subclass.features:
+                    if feature.name == subclass_feature_name:
+                        return feature.description
+        
+        optional_desc = OPTIONAL_FEATURE_DESCRIPTIONS.get(feature_name)
+        if optional_desc:
+            return optional_desc
+
         return "Descrição não disponível."
     
     def has_fighting_style(self, style_name: str) -> bool:
@@ -672,6 +742,8 @@ class Character:
             'armor_class': self.armor_class,
             'initiative': self.initiative,
             'speed': self.speed,
+            'manual_speed_override': self.manual_speed_override,
+            'manual_initiative_override': self.manual_initiative_override,
             'proficiency_bonus': self.proficiency_bonus,
             'skill_proficiencies': self.skill_proficiencies,
             'skill_expertise': self.skill_expertise,
@@ -726,6 +798,8 @@ class Character:
         char.armor_class = data.get('armor_class', 10)
         char.initiative = data.get('initiative', 0)
         char.speed = data.get('speed', 30)
+        char.manual_speed_override = data.get('manual_speed_override')
+        char.manual_initiative_override = data.get('manual_initiative_override')
         char.proficiency_bonus = data.get('proficiency_bonus', 2)
         char.skill_proficiencies = data.get('skill_proficiencies', [])
         char.skill_expertise = data.get('skill_expertise', [])

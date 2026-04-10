@@ -541,14 +541,33 @@ class AdvancedEditWindow(QDialog):
                     if name:
                         self.character.eldritch_invocations.append(name)
 
-        
+        # Captura valores desejados antes de recalcular estatísticas derivadas
+        desired_speed = self.speed_spin.value()
+        desired_initiative = self.initiative_spin.value()
+
+        # Limpa overrides temporariamente para recalcular valores automáticos reais
+        self.character.manual_speed_override = None
+        self.character.manual_initiative_override = None
+
         # Recalcula estatísticas derivadas (CA, iniciativa, velocidade, etc.)
         self.character.update_derived_stats()
-        
-        # Aplica valor manual de speed DEPOIS do recálculo (se o usuário alterou manualmente)
-        # Iniciativa é calculada automaticamente baseada em DEX + feat Alert
-        self.character.speed = self.speed_spin.value()
-        
+
+        auto_speed = self.character.speed
+        auto_initiative = self.character.initiative
+
+        # Aplica overrides manuais apenas se o valor diferir do automático
+        if desired_speed != auto_speed:
+            self.character.manual_speed_override = desired_speed
+            self.character.speed = desired_speed
+        else:
+            self.character.manual_speed_override = None
+
+        if desired_initiative != auto_initiative:
+            self.character.manual_initiative_override = desired_initiative
+            self.character.initiative = desired_initiative
+        else:
+            self.character.manual_initiative_override = None
+
         # Emite sinal de atualização
         self.character_updated.emit()
         

@@ -84,18 +84,47 @@ class Weapon:
         weapon.equipped = data.get('equipped', False)
         return weapon
 
-# Armas pré-definidas comuns
+# Armas pré-definidas — Player's Handbook completo
+# ── Armas Simples Corpo-a-Corpo ──────────────────────────────────────────────
 COMMON_WEAPONS = {
+    'Clava': Weapon('Clava', '1d4', 'bludgeoning', ['light'], 'melee', 'strength'),
     'Adaga': Weapon('Adaga', '1d4', 'piercing', ['finesse', 'light', 'thrown'], 'melee', 'dexterity'),
-    'Espada Curta': Weapon('Espada Curta', '1d6', 'piercing', ['finesse', 'light'], 'melee', 'dexterity'),
-    'Espada Longa': Weapon('Espada Longa', '1d8', 'slashing', ['versatile'], 'melee', 'strength'),
-    'Machado de Batalha': Weapon('Machado de Batalha', '1d8', 'slashing', ['versatile'], 'melee', 'strength'),
-    'Martelo de Guerra': Weapon('Martelo de Guerra', '1d8', 'bludgeoning', ['versatile'], 'melee', 'strength'),
-    'Espada Grande': Weapon('Espada Grande', '2d6', 'slashing', ['heavy', 'two-handed'], 'melee', 'strength'),
-    'Machado Grande': Weapon('Machado Grande', '1d12', 'slashing', ['heavy', 'two-handed'], 'melee', 'strength'),
-    'Arco Curto': Weapon('Arco Curto', '1d6', 'piercing', ['ammunition', 'two-handed'], 'ranged', 'dexterity'),
-    'Arco Longo': Weapon('Arco Longo', '1d8', 'piercing', ['ammunition', 'heavy', 'two-handed'], 'ranged', 'dexterity'),
-    'Besta Leve': Weapon('Besta Leve', '1d8', 'piercing', ['ammunition', 'loading', 'two-handed'], 'ranged', 'dexterity'),
+    'Grande Clava': Weapon('Grande Clava', '1d8', 'bludgeoning', ['two-handed'], 'melee', 'strength'),
+    'Machadinha': Weapon('Machadinha', '1d6', 'slashing', ['light', 'thrown'], 'melee', 'strength'),
+    'Azagaia': Weapon('Azagaia', '1d6', 'piercing', ['thrown'], 'melee', 'strength'),
+    'Martelo Leve': Weapon('Martelo Leve', '1d4', 'bludgeoning', ['light', 'thrown'], 'melee', 'strength'),
+    'Maça': Weapon('Maça', '1d6', 'bludgeoning', [], 'melee', 'strength'),
     'Cajado': Weapon('Cajado', '1d6', 'bludgeoning', ['versatile'], 'melee', 'strength'),
+    'Foice': Weapon('Foice', '1d4', 'slashing', ['light'], 'melee', 'strength'),
     'Lança': Weapon('Lança', '1d6', 'piercing', ['thrown', 'versatile'], 'melee', 'strength'),
+    # ── Armas Simples à Distância ─────────────────────────────────────────────
+    'Besta Leve': Weapon('Besta Leve', '1d8', 'piercing', ['ammunition', 'loading', 'two-handed'], 'ranged', 'dexterity'),
+    'Dardo': Weapon('Dardo', '1d4', 'piercing', ['finesse', 'thrown'], 'melee', 'dexterity'),
+    'Arco Curto': Weapon('Arco Curto', '1d6', 'piercing', ['ammunition', 'two-handed'], 'ranged', 'dexterity'),
+    'Funda': Weapon('Funda', '1d4', 'bludgeoning', ['ammunition'], 'ranged', 'dexterity'),
+    # ── Armas Marciais Corpo-a-Corpo ──────────────────────────────────────────
+    'Machado de Batalha': Weapon('Machado de Batalha', '1d8', 'slashing', ['versatile'], 'melee', 'strength'),
+    'Mangual': Weapon('Mangual', '1d8', 'bludgeoning', [], 'melee', 'strength'),
+    'Glaive': Weapon('Glaive', '1d10', 'slashing', ['heavy', 'reach', 'two-handed'], 'melee', 'strength'),
+    'Machado Grande': Weapon('Machado Grande', '1d12', 'slashing', ['heavy', 'two-handed'], 'melee', 'strength'),
+    'Espada Grande': Weapon('Espada Grande', '2d6', 'slashing', ['heavy', 'two-handed'], 'melee', 'strength'),
+    'Alabarda': Weapon('Alabarda', '1d10', 'slashing', ['heavy', 'reach', 'two-handed'], 'melee', 'strength'),
+    'Lança de Cavalaria': Weapon('Lança de Cavalaria', '1d12', 'piercing', ['reach', 'special'], 'melee', 'strength'),
+    'Espada Longa': Weapon('Espada Longa', '1d8', 'slashing', ['versatile'], 'melee', 'strength'),
+    'Malho': Weapon('Malho', '2d6', 'bludgeoning', ['heavy', 'two-handed'], 'melee', 'strength'),
+    'Estrela da Manhã': Weapon('Estrela da Manhã', '1d8', 'piercing', [], 'melee', 'strength'),
+    'Pique': Weapon('Pique', '1d10', 'piercing', ['heavy', 'reach', 'two-handed'], 'melee', 'strength'),
+    'Rapieira': Weapon('Rapieira', '1d8', 'piercing', ['finesse'], 'melee', 'dexterity'),
+    'Cimitarra': Weapon('Cimitarra', '1d6', 'slashing', ['finesse', 'light'], 'melee', 'dexterity'),
+    'Espada Curta': Weapon('Espada Curta', '1d6', 'piercing', ['finesse', 'light'], 'melee', 'dexterity'),
+    'Tridente': Weapon('Tridente', '1d6', 'piercing', ['thrown', 'versatile'], 'melee', 'strength'),
+    'Picareta de Guerra': Weapon('Picareta de Guerra', '1d8', 'piercing', [], 'melee', 'strength'),
+    'Martelo de Guerra': Weapon('Martelo de Guerra', '1d8', 'bludgeoning', ['versatile'], 'melee', 'strength'),
+    'Chicote': Weapon('Chicote', '1d4', 'slashing', ['finesse', 'reach'], 'melee', 'dexterity'),
+    # ── Armas Marciais à Distância ────────────────────────────────────────────
+    'Zarabatana': Weapon('Zarabatana', '1', 'piercing', ['ammunition', 'loading'], 'ranged', 'dexterity'),
+    'Besta de Mão': Weapon('Besta de Mão', '1d6', 'piercing', ['ammunition', 'light', 'loading'], 'ranged', 'dexterity'),
+    'Besta Pesada': Weapon('Besta Pesada', '1d10', 'piercing', ['ammunition', 'heavy', 'loading', 'two-handed'], 'ranged', 'dexterity'),
+    'Arco Longo': Weapon('Arco Longo', '1d8', 'piercing', ['ammunition', 'heavy', 'two-handed'], 'ranged', 'dexterity'),
+    'Rede': Weapon('Rede', '0', 'special', ['thrown', 'special'], 'ranged', 'strength'),
 }

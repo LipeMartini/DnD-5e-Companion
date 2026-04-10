@@ -4,7 +4,24 @@ Cada classe tem suas próprias subclasses que são escolhidas em níveis especí
 """
 
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import List, Dict, Optional
+
+from .app_settings import AppSettings
+
+SOURCE_CORE = "phb"
+SOURCE_TASHAS = "tashas"
+SOURCE_XANATHARS = "xanathars"
+
+SOURCE_LABELS = {
+    SOURCE_CORE: "Player's Handbook",
+    SOURCE_TASHAS: "Tasha's Cauldron of Everything",
+    SOURCE_XANATHARS: "Xanathar's Guide to Everything",
+}
+
+OPTIONAL_SOURCE_FLAGS = {
+    SOURCE_TASHAS: "tashas_spells",
+    SOURCE_XANATHARS: "xanathars_spells",
+}
 
 @dataclass
 class SubclassFeature:
@@ -36,6 +53,7 @@ class Subclass:
     description: str
     features: List[SubclassFeature]
     selection_level: int = 3  # Nível em que a subclasse é escolhida
+    source: str = SOURCE_CORE
     
     def get_features_at_level(self, level: int) -> List[SubclassFeature]:
         """Retorna features disponíveis em um nível específico"""
@@ -51,7 +69,8 @@ class Subclass:
             'class_name': self.class_name,
             'description': self.description,
             'features': [f.to_dict() for f in self.features],
-            'selection_level': self.selection_level
+            'selection_level': self.selection_level,
+            'source': self.source,
         }
     
     @staticmethod
@@ -61,7 +80,8 @@ class Subclass:
             class_name=data['class_name'],
             description=data['description'],
             features=[SubclassFeature.from_dict(f) for f in data['features']],
-            selection_level=data.get('selection_level', 3)
+            selection_level=data.get('selection_level', 3),
+            source=data.get('source', SOURCE_CORE)
         )
 
 
@@ -92,6 +112,1191 @@ BERSERKER = Subclass(
             name="Retaliation",
             level=14,
             description="When you take damage from a creature that is within 5 feet of you, you can use your reaction to make a melee weapon attack against that creature."
+        )
+    ]
+)
+
+SCHOOL_OF_WAR_MAGIC = Subclass(
+    name="School of War Magic",
+    class_name="Wizard",
+    description="War Magic wizards blend battlefield tactics with arcane wards, deflecting blows while unleashing precise counterstrikes.",
+    selection_level=2,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Arcane Deflection",
+            level=2,
+            description="When you are hit by an attack or fail a saving throw, you can use your reaction to gain +2 AC or +4 to the saving throw, but you can cast only cantrips until the end of your next turn."
+        ),
+        SubclassFeature(
+            name="Tactical Wit",
+            level=2,
+            description="You add your Intelligence modifier to initiative rolls, reflecting your battlefield foresight."
+        ),
+        SubclassFeature(
+            name="Power Surge",
+            level=6,
+            description="You can store power surges whenever you successfully Counterspell or Dispel Magic; when you cast a spell and hit a target, you can expend a surge to deal extra force damage."
+        ),
+        SubclassFeature(
+            name="Durable Magic",
+            level=10,
+            description="While you are concentrating on a spell, you gain a +2 bonus to AC and all saving throws."
+        ),
+        SubclassFeature(
+            name="Deflecting Shroud",
+            level=14,
+            description="When you use Arcane Deflection, you can cause energy to lash out at up to three creatures within 60 feet, dealing force damage equal to half your wizard level."
+        )
+    ]
+)
+
+THE_HEXBLADE = Subclass(
+    name="The Hexblade",
+    class_name="Warlock",
+    description="Hexblade patrons are sentient weapons from the Shadowfell, granting warlocks cursed blades and martial prowess tied to gravely serious bargains.",
+    selection_level=1,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Expanded Spell List",
+            level=1,
+            description="You gain access to spells such as Shield, Wrathful Smite, Branding Smite, Elemental Weapon, Banishing Smite, and more that reflect martial shadow magic."
+        ),
+        SubclassFeature(
+            name="Hexblade's Curse",
+            level=1,
+            description="As a bonus action you can curse a creature for 1 minute, gaining bonus damage, critting on 19-20, and healing when it dies; usable once per short or long rest."
+        ),
+        SubclassFeature(
+            name="Hex Warrior",
+            level=1,
+            description="You gain proficiency with medium armor, shields, and martial weapons, and can use Charisma for attack and damage rolls with one weapon you touch (extending to pact weapons)."
+        ),
+        SubclassFeature(
+            name="Accursed Specter",
+            level=6,
+            description="When you slay a humanoid, you can bind its spirit to rise as a specter under your command until your next long rest, gaining bonus temporary hit points when it drains foes."
+        ),
+        SubclassFeature(
+            name="Armor of Hexes",
+            level=10,
+            description="If the target of your Hexblade's Curse hits you, you can roll a d6; on 4 or higher the attack instead misses you as shadowy wards deflect it."
+        ),
+        SubclassFeature(
+            name="Master of Hexes",
+            level=14,
+            description="When the creature cursed by your Hexblade's Curse dies, you can apply the curse to a new creature within 30 feet without expending another use."
+        )
+    ]
+)
+
+THE_CELESTIAL = Subclass(
+    name="The Celestial",
+    class_name="Warlock",
+    description="Celestial patrons are empyreal beings who pass fragments of radiant power to warlocks sworn to champion hope and healing.",
+    selection_level=1,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Expanded Spell List",
+            level=1,
+            description="You gain access to spells such as Cure Wounds, Guiding Bolt, Lesser Restoration, Revivify, Guardian of Faith, and more focused on radiant support."
+        ),
+        SubclassFeature(
+            name="Bonus Cantrips",
+            level=1,
+            description="You learn the Light and Sacred Flame cantrips; they count as warlock cantrips for you but don't count against your known list."
+        ),
+        SubclassFeature(
+            name="Healing Light",
+            level=1,
+            description="You gain a pool of d6s equal to 1 + your warlock level that you can spend as a bonus action to heal a creature within 60 feet."
+        ),
+        SubclassFeature(
+            name="Radiant Soul",
+            level=6,
+            description="You gain resistance to radiant damage and, once per turn when you deal radiant or fire damage, you can add your Charisma modifier to one damage roll."
+        ),
+        SubclassFeature(
+            name="Celestial Resilience",
+            level=10,
+            description="When you finish a short or long rest, you and up to five allies gain temporary hit points (your warlock level + Charisma modifier), and you gain resistance to a damage type you choose."
+        ),
+        SubclassFeature(
+            name="Searing Vengeance",
+            level=14,
+            description="When you drop to 0 hit points, you can instead explode with radiant light, healing to half your hit points, forcing nearby foes to save or be blinded and take radiant damage."
+        )
+    ]
+)
+
+FORGE_DOMAIN = Subclass(
+    name="Forge Domain",
+    class_name="Cleric",
+    description="Forge clerics serve gods of artisans, industry, and fire, channeling divine craftsmanship to strengthen armor, weapons, and allies.",
+    selection_level=1,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Bonus Proficiencies",
+            level=1,
+            description="You gain proficiency with heavy armor and smith's tools."
+        ),
+        SubclassFeature(
+            name="Blessing of the Forge",
+            level=1,
+            description="At the end of a long rest you can imbue a weapon or armor with magic, granting a +1 bonus to AC or attack and damage rolls until your next long rest."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Artisan's Blessing",
+            level=2,
+            description="You can conduct a 1-hour ritual to craft a nonmagical metal item worth up to 100 gp, transforming raw materials into finished gear."
+        ),
+        SubclassFeature(
+            name="Soul of the Forge",
+            level=6,
+            description="You gain resistance to fire damage, a +1 bonus to AC while wearing heavy armor, and your weapon attacks deal extra fire damage against constructs."
+        ),
+        SubclassFeature(
+            name="Divine Strike",
+            level=8,
+            description="Once on each of your turns you can deal an extra 1d8 fire damage with a weapon attack (2d8 at 14th level)."
+        ),
+        SubclassFeature(
+            name="Saint of Forge and Fire",
+            level=17,
+            description="While wearing heavy armor you gain immunity to fire damage and resistance to bludgeoning, piercing, and slashing damage from nonmagical attacks."
+        )
+    ]
+)
+
+GRAVE_DOMAIN = Subclass(
+    name="Grave Domain",
+    class_name="Cleric",
+    description="Grave clerics stand between life and death, ensuring the natural order of passing and preventing undead profanations.",
+    selection_level=1,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Circle of Mortality",
+            level=1,
+            description="Your healing spells are maximized on creatures at 0 hit points, and you gain spare the dying as a bonus action cantrip with 30-foot range."
+        ),
+        SubclassFeature(
+            name="Eyes of the Grave",
+            level=1,
+            description="You can sense undead within 60 feet that aren't behind total cover a number of times per long rest equal to your Wisdom modifier."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Path to the Grave",
+            level=2,
+            description="As an action you curse a creature, granting vulnerability to all damage from the next attack or spell that hits it before the end of your next turn."
+        ),
+        SubclassFeature(
+            name="Sentinel at Death's Door",
+            level=6,
+            description="You can use your reaction to prevent a critical hit within 30 feet, turning it into a normal hit a number of times per long rest equal to your Wisdom modifier."
+        ),
+        SubclassFeature(
+            name="Potent Spellcasting",
+            level=8,
+            description="You add your Wisdom modifier to the damage you deal with any cleric cantrip."
+        ),
+        SubclassFeature(
+            name="Keeper of Souls",
+            level=17,
+            description="When a creature dies within 60 feet of you, you or another creature of your choice regain hit points equal to the creature's number of Hit Dice (once per turn)."
+        )
+    ]
+)
+
+FORGE_DOMAIN = Subclass(
+    name="Forge Domain",
+    class_name="Cleric",
+    description="Forge clerics serve gods of artisans, industry, and fire, channeling divine craftsmanship to strengthen armor, weapons, and allies.",
+    selection_level=1,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Bonus Proficiencies",
+            level=1,
+            description="You gain proficiency with heavy armor and smith's tools."
+        ),
+        SubclassFeature(
+            name="Blessing of the Forge",
+            level=1,
+            description="At the end of a long rest you can imbue a weapon or armor with magic, granting a +1 bonus to AC or attack and damage rolls until your next long rest."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Artisan's Blessing",
+            level=2,
+            description="You can conduct a 1-hour ritual to craft a nonmagical metal item worth up to 100 gp, transforming raw materials into finished gear."
+        ),
+        SubclassFeature(
+            name="Soul of the Forge",
+            level=6,
+            description="You gain resistance to fire damage, a +1 bonus to AC while wearing heavy armor, and your weapon attacks deal extra fire damage against constructs."
+        ),
+        SubclassFeature(
+            name="Divine Strike",
+            level=8,
+            description="Once on each of your turns you can deal an extra 1d8 fire damage with a weapon attack (2d8 at 14th level)."
+        ),
+        SubclassFeature(
+            name="Saint of Forge and Fire",
+            level=17,
+            description="While wearing heavy armor you gain immunity to fire damage and resistance to bludgeoning, piercing, and slashing damage from nonmagical attacks."
+        )
+    ]
+)
+
+GRAVE_DOMAIN = Subclass(
+    name="Grave Domain",
+    class_name="Cleric",
+    description="Grave clerics stand between life and death, ensuring the natural order of passing and preventing undead profanations.",
+    selection_level=1,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Circle of Mortality",
+            level=1,
+            description="Your healing spells are maximized on creatures at 0 hit points, and you gain spare the dying as a bonus action cantrip with 30-foot range."
+        ),
+        SubclassFeature(
+            name="Eyes of the Grave",
+            level=1,
+            description="You can sense undead within 60 feet that aren't behind total cover a number of times per long rest equal to your Wisdom modifier."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Path to the Grave",
+            level=2,
+            description="As an action you curse a creature, granting vulnerability to all damage from the next attack or spell that hits it before the end of your next turn."
+        ),
+        SubclassFeature(
+            name="Sentinel at Death's Door",
+            level=6,
+            description="You can use your reaction to prevent a critical hit within 30 feet, turning it into a normal hit a number of times per long rest equal to your Wisdom modifier."
+        ),
+        SubclassFeature(
+            name="Potent Spellcasting",
+            level=8,
+            description="You add your Wisdom modifier to the damage you deal with any cleric cantrip."
+        ),
+        SubclassFeature(
+            name="Keeper of Souls",
+            level=17,
+            description="When a creature dies within 60 feet of you, you or another creature of your choice regain hit points equal to the creature's number of Hit Dice (once per turn)."
+        )
+    ]
+)
+
+FORGE_DOMAIN = Subclass(
+    name="Forge Domain",
+    class_name="Cleric",
+    description="Forge clerics serve gods of artisans, industry, and fire, channeling divine craftsmanship to strengthen armor, weapons, and allies.",
+    selection_level=1,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Bonus Proficiencies",
+            level=1,
+            description="You gain proficiency with heavy armor and smith's tools."
+        ),
+        SubclassFeature(
+            name="Blessing of the Forge",
+            level=1,
+            description="At the end of a long rest you can imbue a weapon or armor with magic, granting a +1 bonus to AC or attack and damage rolls until your next long rest."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Artisan's Blessing",
+            level=2,
+            description="You can conduct a 1-hour ritual to craft a nonmagical metal item worth up to 100 gp, transforming raw materials into finished gear."
+        ),
+        SubclassFeature(
+            name="Soul of the Forge",
+            level=6,
+            description="You gain resistance to fire damage, a +1 bonus to AC while wearing heavy armor, and your weapon attacks deal extra fire damage against constructs."
+        ),
+        SubclassFeature(
+            name="Divine Strike",
+            level=8,
+            description="Once on each of your turns you can deal an extra 1d8 fire damage with a weapon attack (2d8 at 14th level)."
+        ),
+        SubclassFeature(
+            name="Saint of Forge and Fire",
+            level=17,
+            description="While wearing heavy armor you gain immunity to fire damage and resistance to bludgeoning, piercing, and slashing damage from nonmagical attacks."
+        )
+    ]
+)
+
+GRAVE_DOMAIN = Subclass(
+    name="Grave Domain",
+    class_name="Cleric",
+    description="Grave clerics stand between life and death, ensuring the natural order of passing and preventing undead profanations.",
+    selection_level=1,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Circle of Mortality",
+            level=1,
+            description="Your healing spells are maximized on creatures at 0 hit points, and you gain spare the dying as a bonus action cantrip with 30-foot range."
+        ),
+        SubclassFeature(
+            name="Eyes of the Grave",
+            level=1,
+            description="You can sense undead within 60 feet that aren't behind total cover a number of times per long rest equal to your Wisdom modifier."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Path to the Grave",
+            level=2,
+            description="As an action you curse a creature, granting vulnerability to all damage from the next attack or spell that hits it before the end of your next turn."
+        ),
+        SubclassFeature(
+            name="Sentinel at Death's Door",
+            level=6,
+            description="You can use your reaction to prevent a critical hit within 30 feet, turning it into a normal hit a number of times per long rest equal to your Wisdom modifier."
+        ),
+        SubclassFeature(
+            name="Potent Spellcasting",
+            level=8,
+            description="You add your Wisdom modifier to the damage you deal with any cleric cantrip."
+        ),
+        SubclassFeature(
+            name="Keeper of Souls",
+            level=17,
+            description="When a creature dies within 60 feet of you, you or another creature of your choice regain hit points equal to the creature's number of Hit Dice (once per turn)."
+        )
+    ]
+)
+
+
+
+
+
+
+SCHOOL_OF_SCRIBES = Subclass(
+    name="School of Scribes",
+    class_name="Wizard",
+    description="Scribes are devoted chroniclers of magic who awaken their spellbooks and ink spells into reality with living quills.",
+    selection_level=2,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Wizardly Quill",
+            level=2,
+            description="You conjure a quill that never runs out of ink, halves the time needed to copy spells, and can write on its own."
+        ),
+        SubclassFeature(
+            name="Awakened Spellbook",
+            level=2,
+            description="Your spellbook becomes sentient, letting you temporarily change a spell's damage type or cast certain spells as rituals even if not prepared."
+        ),
+        SubclassFeature(
+            name="Manifest Mind",
+            level=6,
+            description="You can project your book's mind as a spectral image that scouts, delivers spells, and shares sight and sound with you."
+        ),
+        SubclassFeature(
+            name="Master Scrivener",
+            level=10,
+            description="You can create quickened scrolls each day and increase the power of spells cast via scrolls you create."
+        ),
+        SubclassFeature(
+            name="One with the Word",
+            level=14,
+            description="Your spellbook can absorb spells directed at you, and if it takes damage you can sacrifice prepared spells to prevent the harm."
+        )
+    ]
+)
+
+THE_FATHOMLESS = Subclass(
+    name="The Fathomless",
+    class_name="Warlock",
+    description="Fathomless patrons dwell in the crushing depths—krakens, ancient merfolk, or unknowable leviathans granting abyssal power.",
+    selection_level=1,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Expanded Spell List",
+            level=1,
+            description="You gain aquatic-themed spells such as Fog Cloud, Silence, Lightning Bolt, Control Water, and Cone of Cold."
+        ),
+        SubclassFeature(
+            name="Tentacle of the Deeps",
+            level=1,
+            description="You can summon a spectral tentacle that lashes foes, dealing cold damage and slowing them."
+        ),
+        SubclassFeature(
+            name="Gift of the Sea",
+            level=1,
+            description="You gain a swimming speed equal to your walking speed and can breathe underwater."
+        ),
+        SubclassFeature(
+            name="Oceanic Soul",
+            level=6,
+            description="You adapt to the deep, gaining resistance to cold damage and the ability to speak with aquatic creatures."
+        ),
+        SubclassFeature(
+            name="Guardian Coil",
+            level=6,
+            description="Your tentacle can protect allies by reducing damage taken when they are struck."
+        ),
+        SubclassFeature(
+            name="Grasping Tentacles",
+            level=10,
+            description="You can cast Evard's Black Tentacles without a slot once per rest, gaining temporary hit points when you do."
+        ),
+        SubclassFeature(
+            name="Fathomless Plunge",
+            level=14,
+            description="You can teleport yourself and up to five willing creatures through a watery portal, emulating a sudden plunge through the depths." 
+        )
+    ]
+)
+
+THE_GENIE = Subclass(
+    name="The Genie",
+    class_name="Warlock",
+    description="Genie patrons hail from the Elemental Planes. Each type (Dao, Djinni, Efreeti, Marid) grants magic tied to their element and a mystic vessel.",
+    selection_level=1,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Expanded Spell List",
+            level=1,
+            description="You gain additional spells based on your genie's kind, such as Sanctuary, Spike Growth, Fireball, or Create Food and Water."
+        ),
+        SubclassFeature(
+            name="Genie's Vessel",
+            level=1,
+            description="You carry a vessel that grants the Bottled Respite ability and lets you add damage once per turn of the type tied to your patron."
+        ),
+        SubclassFeature(
+            name="Elemental Gift",
+            level=6,
+            description="You gain resistance to your patron's damage type and a flying speed (or burrow/swim for some genies) for short bursts."
+        ),
+        SubclassFeature(
+            name="Sanctuary Vessel",
+            level=10,
+            description="You can bring allies into your vessel to rest safely, and they gain temporary hit points when they emerge."
+        ),
+        SubclassFeature(
+            name="Limited Wish",
+            level=14,
+            description="Once per long rest you can produce a limited wish, duplicating a spell of 6th level or lower without material components."
+        )
+    ]
+)
+
+ABERRANT_MIND = Subclass(
+    name="Aberrant Mind",
+    class_name="Sorcerer",
+    description="Aberrant Mind sorcerers manifest psionic magic from eldritch truths, alien influence, or far realm mutations.",
+    selection_level=1,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Aberrant Mind Spells",
+            level=1,
+            description="You gain additional spells focused on telepathy, psychic force, and aberrant themes; they don't count against your known spells."
+        ),
+        SubclassFeature(
+            name="Telepathic Speech",
+            level=1,
+            description="You can form a telepathic bond as a bonus action, allowing conversation regardless of language."
+        ),
+        SubclassFeature(
+            name="Psionic Sorcery",
+            level=6,
+            description="You can spend sorcery points to cast your Aberrant Mind spells without verbal, somatic, or material components, and your spells become subtle manifestations of psionic power."
+        ),
+        SubclassFeature(
+            name="Psychic Defenses",
+            level=6,
+            description="You gain resistance to psychic damage and advantage on saving throws against being charmed or frightened."
+        ),
+        SubclassFeature(
+            name="Revelation in Flesh",
+            level=14,
+            description="As a bonus action you can spend sorcery points to gain aberrant transformations such as flight, aquatic adaptation, or phase-walking."
+        ),
+        SubclassFeature(
+            name="Warping Implosion",
+            level=18,
+            description="You can briefly open a psychic maelstrom, teleporting yourself and pulling creatures toward where you stood, dealing force damage."
+        )
+    ]
+)
+
+CLOCKWORK_SOUL = Subclass(
+    name="Clockwork Soul",
+    class_name="Sorcerer",
+    description="Clockwork Soul sorcerers draw their power from lawful planes of order, enforcing balance amid chaos.",
+    selection_level=1,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Clockwork Magic",
+            level=1,
+            description="You gain additional spells that embody precision and control, such as Alarm, Aid, Dispel Magic, and Wall of Force."
+        ),
+        SubclassFeature(
+            name="Restore Balance",
+            level=1,
+            description="As a reaction you can cancel advantage or disadvantage on a roll within 60 feet, reasserting equilibrium."
+        ),
+        SubclassFeature(
+            name="Bastion of Law",
+            level=6,
+            description="You can spend sorcery points to surround a creature with protective clockwork energy that converts incoming damage into depleted dice."
+        ),
+        SubclassFeature(
+            name="Trance of Order",
+            level=14,
+            description="You can enter a state for 1 minute where attack rolls against you can't gain advantage and any roll you make below 10 on an attack or ability check counts as a 10."
+        ),
+        SubclassFeature(
+            name="Clockwork Cavalcade",
+            level=18,
+            description="You can summon a 30-foot cube of clockwork entities that repair structures, restore hit points, and end certain conditions, before vanishing in sparks of order."
+        )
+    ]
+)
+
+PHANTOM = Subclass(
+    name="Phantom",
+    class_name="Rogue",
+    description="Phantoms walk the line between life and death, communing with fallen spirits to harvest their knowledge and power.",
+    selection_level=3,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Whispers of the Dead",
+            level=3,
+            description="When you finish a long rest, you can choose one skill or tool proficiency the ghosts share with you, temporarily gaining it."
+        ),
+        SubclassFeature(
+            name="Wails from the Grave",
+            level=3,
+            description="Immediately after you deal Sneak Attack damage, you can deal half that damage to a second creature you can see within 30 feet as spectral energy leaps from the first target."
+        ),
+        SubclassFeature(
+            name="Tokens of the Departed",
+            level=9,
+            description="When a creature dies near you, you can snare a soul trinket, gaining bonuses to death saves, ability checks, and the ability to ask the spirit questions."
+        ),
+        SubclassFeature(
+            name="Ghost Walk",
+            level=13,
+            description="You can take on a spectral form as a bonus action, gaining a flight speed, resistance to all damage but force, and the ability to move through objects for 10 minutes."
+        ),
+        SubclassFeature(
+            name="Death's Friend",
+            level=17,
+            description="Your connection to death deepens, letting you regain expended Wails from the Grave uses when you finish a short rest and granting bonus damage when you have no uses left."
+        )
+    ]
+)
+
+SOULKNIFE = Subclass(
+    name="Soulknife",
+    class_name="Rogue",
+    description="Soulknives wield psionic blades of pure thought, cutting through minds as easily as flesh.",
+    selection_level=3,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Psionic Power",
+            level=3,
+            description="You gain psionic energy dice and abilities such as Psi-Bolstered Knack to rescue failed rolls and Psychic Whispers to speak telepathically."
+        ),
+        SubclassFeature(
+            name="Psychic Blades",
+            level=3,
+            description="You can manifest a pair of psychic blades as part of your attacks, dealing psychic damage and vanishing after a hit."
+        ),
+        SubclassFeature(
+            name="Soul Blades",
+            level=9,
+            description="You unlock Homing Strikes to reroll misses and Psychic Teleportation to hurl a blade and teleport to it."
+        ),
+        SubclassFeature(
+            name="Psychic Veil",
+            level=13,
+            description="You can become invisible for 1 hour or until you deal damage, thanks to psionic camouflage."
+        ),
+        SubclassFeature(
+            name="Rend Mind",
+            level=17,
+            description="When you use Psychic Blades to hit a creature, you can force it to make a Wisdom save or be stunned for 1 minute, taking extra psychic damage on subsequent turns."
+        )
+    ]
+)
+
+FEY_WANDERER = Subclass(
+    name="Fey Wanderer",
+    class_name="Ranger",
+    description="Fey Wanderers have seen the Feywild's beauty and danger firsthand, carrying its magic back into the mortal world.",
+    selection_level=3,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Fey Wanderer Magic",
+            level=3,
+            description="You gain additional spells like Charm Person, Misty Step, and Greater Invisibility which are always prepared."
+        ),
+        SubclassFeature(
+            name="Dreadful Strikes",
+            level=3,
+            description="Once per turn when you hit a creature with a weapon attack, you can deal extra psychic damage and mark it with fey magic."
+        ),
+        SubclassFeature(
+            name="Otherworldly Glamour",
+            level=3,
+            description="You gain proficiency in one skill of your choice and can add Wisdom modifier to Charisma checks, reflecting your enchanting presence."
+        ),
+        SubclassFeature(
+            name="Beguiling Twist",
+            level=7,
+            description="When a creature succeeds on a saving throw against your enchantment or fear effects, you can redirect the magic to another target."
+        ),
+        SubclassFeature(
+            name="Fey Reinforcements",
+            level=11,
+            description="You can summon a fey spirit without material components, and it gains extra hit points equal to your Wisdom modifier."
+        ),
+        SubclassFeature(
+            name="Misty Wanderer",
+            level=15,
+            description="You can cast Misty Step without expending a spell slot several times per long rest and can bring allies with you."
+        )
+    ]
+)
+
+SWARMKEEPER = Subclass(
+    name="Swarmkeeper",
+    class_name="Ranger",
+    description="Swarmkeepers bond with nature spirits that manifest as swarms of insects, birds, or other tiny creatures supporting every attack.",
+    selection_level=3,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Swarmkeeper Magic",
+            level=3,
+            description="You gain additional spells such as Faerie Fire, Web, and Insect Plague that are always prepared."
+        ),
+        SubclassFeature(
+            name="Gathered Swarm",
+            level=3,
+            description="When you hit with a weapon attack, your swarm can move the target, move you, or deal extra damage."
+        ),
+        SubclassFeature(
+            name="Writhing Tide",
+            level=7,
+            description="You can briefly gain a flying speed as the swarm lifts you into the air."
+        ),
+        SubclassFeature(
+            name="Mighty Swarm",
+            level=11,
+            description="Your swarm's attacks deal more damage and can knock creatures prone or move them further."
+        ),
+        SubclassFeature(
+            name="Swarming Dispersal",
+            level=15,
+            description="When you take damage, you can have your swarm teleport you and grant resistance to that damage."
+        )
+    ]
+)
+
+OATH_OF_GLORY = Subclass(
+    name="Oath of Glory",
+    class_name="Paladin",
+    description="Glory paladins seek the spotlight of heroism, pushing themselves and allies toward legendary deeds.",
+    selection_level=3,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Oath Spells",
+            level=3,
+            description="You gain an oath spell list focused on heroism and mobility, including Guiding Bolt, Enhance Ability, Haste, Compulsion, and more."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Peerless Athlete",
+            level=3,
+            description="You can use Channel Divinity to gain a massive boost to Strength and Dexterity checks, letting you leap, climb, or swim with Olympian prowess for 10 minutes."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Inspiring Smite",
+            level=3,
+            description="Immediately after you deal Divine Smite damage, you can distribute temporary hit points to creatures within 30 feet, sharing your triumph."
+        ),
+        SubclassFeature(
+            name="Aura of Alacrity",
+            level=7,
+            description="You and allies within 5 feet (10 feet at 18th level) gain a speed bonus when they start their turn in your aura, encouraging swift strikes."
+        ),
+        SubclassFeature(
+            name="Glorious Defense",
+            level=15,
+            description="When you or a creature within 10 feet is hit, you can use your reaction to grant a bonus to AC that may cause the attack to miss and, if it misses, you can make one weapon attack."
+        ),
+        SubclassFeature(
+            name="Living Legend",
+            level=20,
+            description="As a bonus action you can become a living legend for 1 minute, gaining advantage on Charisma checks, turning misses into hits, and rerolling failed saving throws once per turn."
+        )
+    ]
+)
+
+OATH_OF_THE_WATCHERS = Subclass(
+    name="Oath of the Watchers",
+    class_name="Paladin",
+    description="Watchers paladins guard the mortal realms from extraplanar threats, ever vigilant against cosmic intruders.",
+    selection_level=3,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Oath Spells",
+            level=3,
+            description="Your oath spells emphasize detection and banishment, including Alarm, Moonbeam, Counterspell, Banishment, Hold Monster, and more."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Watcher's Will",
+            level=3,
+            description="You can use Channel Divinity to grant advantage on Intelligence, Wisdom, and Charisma saves to yourself and allies within 30 feet."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Abjure the Extraplanar",
+            level=3,
+            description="As an action you can rebuke aberrations, celestials, elementals, fey, and fiends, forcing them to make a saving throw or be turned."
+        ),
+        SubclassFeature(
+            name="Aura of the Sentinel",
+            level=7,
+            description="You and allies within 10 feet (30 at 18th level) add your proficiency bonus to initiative rolls."
+        ),
+        SubclassFeature(
+            name="Vigilant Rebuke",
+            level=15,
+            description="When a creature within 30 feet succeeds on a saving throw due to Watcher's Will, you can deal psychic damage to the attacker as a reaction."
+        ),
+        SubclassFeature(
+            name="Mortal Bulwark",
+            level=20,
+            description="As a bonus action you can manifest a ward for 1 minute, gaining truesight, advantage against extraplanar foes, and the ability to banish them when you hit."
+        )
+    ]
+)
+
+WAY_OF_MERCY = Subclass(
+    name="Way of Mercy",
+    class_name="Monk",
+    description="Mercy monks blend masked theatrics with pressure-point strikes, delivering both miraculous healing and lethal harm.",
+    selection_level=3,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Implements of Mercy",
+            level=3,
+            description="You gain proficiency with Insight, Medicine, and the herbalism kit, adopting ceremonial garb to hide your face."
+        ),
+        SubclassFeature(
+            name="Hand of Healing",
+            level=3,
+            description="You can spend ki to heal as an action or as part of Flurry of Blows, restoring hit points equal to a Martial Arts die + your Wisdom modifier."
+        ),
+        SubclassFeature(
+            name="Hand of Harm",
+            level=3,
+            description="When you hit a creature with an unarmed strike, you can spend 1 ki to deal extra necrotic damage equal to one Martial Arts die + your Wisdom modifier and potentially impose the poisoned condition."
+        ),
+        SubclassFeature(
+            name="Physician's Touch",
+            level=6,
+            description="Your healing ends disease and poison, while your Hand of Harm can poison targets without requiring a save."
+        ),
+        SubclassFeature(
+            name="Flurry of Healing and Harm",
+            level=11,
+            description="When you use Flurry of Blows, you can replace attacks with Hand of Healing or Hand of Harm at reduced ki costs, spreading aid or suffering across the battlefield."
+        ),
+        SubclassFeature(
+            name="Hand of Ultimate Mercy",
+            level=17,
+            description="As an action you can spend 5 ki points to touch a creature and revive it to full consciousness, curing diseases, poisons, and restoring hit points."
+        )
+    ]
+)
+
+WAY_OF_THE_ASTRAL_SELF = Subclass(
+    name="Way of the Astral Self",
+    class_name="Monk",
+    description="Astral Self monks project a luminous avatar that manifests their true inner power as spectral arms, visage, and body.",
+    selection_level=3,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Arms of the Astral Self",
+            level=3,
+            description="You can spend 1 ki point to summon spectral arms for 10 minutes, using Wisdom for attacks, dealing force damage, and gaining reach plus the ability to shove with ki."
+        ),
+        SubclassFeature(
+            name="Visage of the Astral Self",
+            level=6,
+            description="You can manifest an astral mask that grants darkvision, advantage on Insight and intimidation, and the ability to speak telepathically."
+        ),
+        SubclassFeature(
+            name="Body of the Astral Self",
+            level=11,
+            description="Your astral form grants resistance to elemental damage types and lets you deflect attacks with reactions that reduce damage to others."
+        ),
+        SubclassFeature(
+            name="Awakening of the Astral Self",
+            level=17,
+            description="You can spend ki to fully manifest head, arms, and body at once, gaining additional attacks, extra reach, and the ability to impose multiple saving throws on foes."
+        )
+    ]
+)
+
+PSI_WARRIOR = Subclass(
+    name="Psi Warrior",
+    class_name="Fighter",
+    description="Psi Warriors awaken latent psionic power, projecting invisible force to shield allies and crush foes.",
+    selection_level=3,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Psionic Power",
+            level=3,
+            description="You gain psionic energy dice that fuel abilities such as Psionic Strike for bonus force damage, Telekinetic Movement to reposition objects or allies, and Protective Field to reduce incoming damage."
+        ),
+        SubclassFeature(
+            name="Telekinetic Adept",
+            level=7,
+            description="You learn Psi-Powered Leap for burst movement and Telekinetic Thrust to knock enemies prone or hurl them away when you use Psionic Strike."
+        ),
+        SubclassFeature(
+            name="Guarded Mind",
+            level=10,
+            description="You gain resistance to psychic damage and can end charmed or frightened on yourself by expending a psionic die."
+        ),
+        SubclassFeature(
+            name="Bulwark of Force",
+            level=15,
+            description="As a bonus action you can give yourself and allies half cover for 1 minute, creating a shimmering telekinetic barrier."
+        ),
+        SubclassFeature(
+            name="Telekinetic Master",
+            level=18,
+            description="You can cast Telekinesis once per long rest without components, and while concentrating you can make a bonus-action attack that deals force damage equal to your psionic die."
+        )
+    ]
+)
+
+RUNE_KNIGHT = Subclass(
+    name="Rune Knight",
+    class_name="Fighter",
+    description="Rune Knights study giant runes, carving sigils onto weapons and armor to harness primeval magic.",
+    selection_level=3,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Bonus Proficiencies",
+            level=3,
+            description="You gain proficiency with smith's tools and learn Giant, reflecting your study of rune lore."
+        ),
+        SubclassFeature(
+            name="Rune Carver & Giant's Might",
+            level=3,
+            description="You learn to inscribe two runes that grant magic powers (like Cloud, Fire, Frost, etc.), and you can invoke Giant's Might to grow in size, deal extra damage, and gain advantage on Strength checks and saves."
+        ),
+        SubclassFeature(
+            name="Runic Shield",
+            level=7,
+            description="When an ally within 60 feet is hit, you can use your reaction to force a reroll, protecting them with rune magic."
+        ),
+        SubclassFeature(
+            name="Great Stature",
+            level=10,
+            description="You grow taller (1d4 inches) and your Giant's Might damage increases."
+        ),
+        SubclassFeature(
+            name="Master of Runes",
+            level=15,
+            description="You can activate each rune you know twice per short rest instead of once."
+        ),
+        SubclassFeature(
+            name="Runic Juggernaut",
+            level=18,
+            description="Your Giant's Might size increases, you gain bonus Strength checks advantage constantly, and your additional damage die becomes d10s."
+        )
+    ]
+)
+
+CIRCLE_OF_SPORES = Subclass(
+    name="Circle of Spores",
+    class_name="Druid",
+    description="Spores druids mingle with fungal colonies, wielding decay and rebirth as weapons while surrounding themselves with necrotic blooms.",
+    selection_level=2,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Circle Spells",
+            level=2,
+            description="You gain access to a roster of necrotic- and fungus-themed spells such as Chill Touch, Blindness/Deafness, Animate Dead, and more, which are always prepared for you."
+        ),
+        SubclassFeature(
+            name="Halo of Spores",
+            level=2,
+            description="As a reaction you can deal necrotic damage to creatures that start their turn within 10 feet of you, representing the spores orbiting your body."
+        ),
+        SubclassFeature(
+            name="Symbiotic Entity",
+            level=2,
+            description="You can expend Wild Shape to awaken spores, gaining temporary hit points, bonus necrotic damage, and augmented Halo of Spores while the effect lasts."
+        ),
+        SubclassFeature(
+            name="Fungal Infestation",
+            level=6,
+            description="When a Small or Medium creature dies within 10 feet of you, you can animate it as a zombie that immediately takes a turn after yours."
+        ),
+        SubclassFeature(
+            name="Spreading Spores",
+            level=10,
+            description="You can hurl your Halo of Spores to create a 10-foot cube of necrotic fungus that damages enemies and can be moved as a bonus action."
+        ),
+        SubclassFeature(
+            name="Fungal Body",
+            level=14,
+            description="You become more plant than humanoid: you can't be blinded, deafened, frightened, or poisoned, and critical hits deal normal damage to you."
+        )
+    ]
+)
+
+CIRCLE_OF_STARS = Subclass(
+    name="Circle of Stars",
+    class_name="Druid",
+    description="Stars druids seek constellations as guides, shaping their Wild Shape into living starlight and reading omens from the night sky.",
+    selection_level=2,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Star Map",
+            level=2,
+            description="You craft a star map focus that grants you Guiding Bolt, augury-like guidance, and acts as a spellcasting focus."
+        ),
+        SubclassFeature(
+            name="Starry Form",
+            level=2,
+            description="You can expend Wild Shape to become a constellation (Archer, Chalice, or Dragon), gaining unique bonuses such as radiant arrow attacks, boosted healing, or improved concentration."
+        ),
+        SubclassFeature(
+            name="Circle Spells",
+            level=2,
+            description="You always have certain star-themed spells prepared, including Guiding Bolt, Moonbeam, Conjure Animals, and more."
+        ),
+        SubclassFeature(
+            name="Cosmic Omen",
+            level=6,
+            description="When you finish a long rest you roll to see whether benevolent (Weal) or malevolent (Woe) omens guide you, granting reaction abilities to add or subtract d6s from rolls."
+        ),
+        SubclassFeature(
+            name="Twinkling Constellations",
+            level=10,
+            description="Your Starry Form options improve: Archer deals more damage, Chalice heals more, and Dragon grants a flying speed."
+        ),
+        SubclassFeature(
+            name="Full of Stars",
+            level=14,
+            description="While in Starry Form you gain resistance to bludgeoning, piercing, and slashing damage, embodying stellar resilience."
+        )
+    ]
+)
+
+CIRCLE_OF_WILDFIRE = Subclass(
+    name="Circle of Wildfire",
+    class_name="Druid",
+    description="Wildfire druids embrace the cycle of destruction and renewal, summoning elemental flames to purge and regrow the natural world.",
+    selection_level=2,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Circle Spells",
+            level=2,
+            description="You always have wildfire-themed spells prepared, from Burning Hands to Flamestrike and Flame Strike."
+        ),
+        SubclassFeature(
+            name="Summon Wildfire Spirit",
+            level=2,
+            description="You can expend Wild Shape to summon a Wildfire Spirit that acts on its own initiative, blasting foes and teleporting you and allies through flames."
+        ),
+        SubclassFeature(
+            name="Enhanced Bond",
+            level=6,
+            description="While your Wildfire Spirit is summoned, your fire spells deal extra damage or your healing spells heal extra points, and the spirit can deliver certain spells for you."
+        ),
+        SubclassFeature(
+            name="Cauterizing Flames",
+            level=10,
+            description="When a creature dies within 30 feet of you or your spirit, motes of flame either heal allies or scorch enemies."
+        ),
+        SubclassFeature(
+            name="Blazing Revival",
+            level=14,
+            description="If you drop to 0 hit points and your spirit is present, you can have it sacrifice itself to revive you with half hit points and move you to safety."
+        )
+    ]
+)
+
+PEACE_DOMAIN = Subclass(
+    name="Peace Domain",
+    class_name="Cleric",
+    description="Clerics of peace safeguard diplomacy, mediation, and bonds between allies, magically knitting companions into a united front.",
+    selection_level=1,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Implements of Peace",
+            level=1,
+            description="You gain proficiency with Insight, Performance, or Persuasion (your choice), ensuring you can calm tempers in any court."
+        ),
+        SubclassFeature(
+            name="Emboldening Bond",
+            level=1,
+            description="Through a ritual you bond willing creatures. While bonded and within 30 feet of another bonded ally, once per turn a creature can add 1d4 to an attack roll, ability check, or saving throw."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Balm of Peace",
+            level=2,
+            description="You can use an action to move up to your speed without provoking attacks, touching creatures along the way and restoring 2d6 + your Wisdom modifier hit points to each."
+        ),
+        SubclassFeature(
+            name="Protective Bond",
+            level=6,
+            description="Bonded creatures can use their reactions to teleport next to one another and absorb damage, representing their shared protection."
+        ),
+        SubclassFeature(
+            name="Potent Spellcasting",
+            level=8,
+            description="You add your Wisdom modifier to damage rolls of any cleric cantrip."
+        ),
+        SubclassFeature(
+            name="Expansive Bond",
+            level=17,
+            description="Your bond range increases to 60 feet and when a bonded ally uses the reaction to take damage for another, they both gain resistance to that damage type for the triggering instance."
+        )
+    ]
+)
+
+TWILIGHT_DOMAIN = Subclass(
+    name="Twilight Domain",
+    class_name="Cleric",
+    description="Twilight clerics usher creatures safely through darkness, wielding dusk and dawn to protect their companions.",
+    selection_level=1,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Bonus Proficiencies",
+            level=1,
+            description="You gain proficiency with martial weapons and heavy armor, ready to stand watch through the longest night."
+        ),
+        SubclassFeature(
+            name="Eyes of Night",
+            level=1,
+            description="You have darkvision out to 300 feet and can share it with a limited number of allies for 1 hour."
+        ),
+        SubclassFeature(
+            name="Vigilant Blessing",
+            level=1,
+            description="As an action you grant advantage on the next initiative roll to yourself or an ally, providing perpetual vigilance."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Twilight Sanctuary",
+            level=2,
+            description="You emanate a calming sphere of twilight for 1 minute, granting temp HP or ending charmed/frightened on allies that start their turns inside."
+        ),
+        SubclassFeature(
+            name="Steps of Night",
+            level=6,
+            description="While in dim light or darkness you can use a bonus action to gain a flying speed equal to your walking speed for 1 minute."
+        ),
+        SubclassFeature(
+            name="Divine Strike",
+            level=8,
+            description="Once on each of your turns when you hit with a weapon attack, you deal an extra 1d8 radiant damage (2d8 at 14th level)."
+        ),
+        SubclassFeature(
+            name="Twilight Shroud",
+            level=17,
+            description="Creatures granted temp HP by your Twilight Sanctuary also benefit from half cover while inside the sphere, sheltering them from harm."
+        )
+    ]
+)
+
+COLLEGE_OF_CREATION = Subclass(
+    name="College of Creation",
+    class_name="Bard",
+    description="Creation bards tap into the Song of Creation, weaving music and art into tangible reality.",
+    selection_level=3,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Mote of Potential",
+            level=3,
+            description="Whenever one of your Bardic Inspiration dice is rolled, you can add an extra effect depending on whether the die was used for an ability check, attack, or saving throw, causing additional damage, healing, or bursts of light."
+        ),
+        SubclassFeature(
+            name="Performance of Creation",
+            level=3,
+            description="As an action you can create a nonmagical item worth up to 20 × your bard level in gold pieces, which lasts hours equal to your Charisma modifier. At higher levels the size and value increase."
+        ),
+        SubclassFeature(
+            name="Animating Performance",
+            level=6,
+            description="You can animate a Large or smaller nonmagical item, turning it into a dancing companion that fights for you using your spell save DC."
+        ),
+        SubclassFeature(
+            name="Creative Crescendo",
+            level=14,
+            description="Performance of Creation can now maintain several creations at once, and you can create larger or more valuable objects without expending spell slots."
+        )
+    ]
+)
+
+COLLEGE_OF_ELOQUENCE = Subclass(
+    name="College of Eloquence",
+    class_name="Bard",
+    description="Eloquence bards are masters of rhetoric who use flawless oratory to sway allies and foes alike.",
+    selection_level=3,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Silver Tongue",
+            level=3,
+            description="Whenever you make a Persuasion or Deception check, treat any d20 roll of 9 or lower as a 10, ensuring near-perfect social poise."
+        ),
+        SubclassFeature(
+            name="Unsettling Words",
+            level=3,
+            description="As a bonus action you can expend a Bardic Inspiration use to subtract the die from a creature's next saving throw before the end of your next turn."
+        ),
+        SubclassFeature(
+            name="Unfailing Inspiration",
+            level=6,
+            description="If a creature adds one of your Bardic Inspiration dice and still fails, the die is not expended."
+        ),
+        SubclassFeature(
+            name="Universal Speech",
+            level=6,
+            description="You can make yourself understood by any creature, granting a number of targets equal to your Charisma modifier the ability to comprehend you for 1 hour."
+        ),
+        SubclassFeature(
+            name="Infectious Inspiration",
+            level=14,
+            description="When you see an ally within 60 feet succeed using your Bardic Inspiration, you can (once per turn) grant a second creature a free Bardic Inspiration without expending a use."
         )
     ]
 )
@@ -315,6 +1520,166 @@ TOTEM_WARRIOR = Subclass(
     ]
 )
 
+PATH_OF_THE_ANCESTRAL_GUARDIAN = Subclass(
+    name="Path of the Ancestral Guardian",
+    class_name="Barbarian",
+    description="Barbarians of the Ancestral Guardian path fight alongside spectral ancestors who shield allies and harry foes.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Ancestral Protectors",
+            level=3,
+            description="When you rage, spectral warriors appear. The first creature you hit on each of your turns becomes hindered by them until the start of your next turn: it has disadvantage on attack rolls against targets other than you, and those targets gain resistance to the damage it deals."
+        ),
+        SubclassFeature(
+            name="Spirit Shield",
+            level=6,
+            description="While raging you can use your reaction to reduce damage taken by a creature within 30 feet by 2d6 (scaling to 3d6 at 10th level and 4d6 at 15th) as ancestral spirits deflect the blow."
+        ),
+        SubclassFeature(
+            name="Consult the Spirits",
+            level=10,
+            description="You cast Augury or Clairvoyance as a ritual, gaining temporary spiritual insight. When you do, your Consult takes on ethereal form guided by your ancestors."
+        ),
+        SubclassFeature(
+            name="Vengeful Ancestors",
+            level=14,
+            description="When Spirit Shield reduces damage, the attacker takes force damage equal to the amount prevented as your guardians lash out."
+        )
+    ]
+)
+
+PATH_OF_THE_STORM_HERALD = Subclass(
+    name="Path of the Storm Herald",
+    class_name="Barbarian",
+    description="Storm Heralds carry the fury of desert, sea, or tundra storms inside them, erupting in elemental auras when they rage.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Storm Aura",
+            level=3,
+            description="While raging you emit a 10-foot aura tied to desert, sea, or tundra. As a bonus action each turn you can unleash its effect, such as scorching nearby foes, jolting enemies with lightning, or granting temporary hit points against the chill. You can change the environment when you finish a long rest."
+        ),
+        SubclassFeature(
+            name="Storm Soul",
+            level=6,
+            description="Your chosen storm grants permanent benefits: resistance to fire, lightning, or cold; the ability to breathe underwater or in extreme heat; and utility touches like lighting or miniature storms that reflect your aura type."
+        ),
+        SubclassFeature(
+            name="Shielding Storm",
+            level=10,
+            description="Creatures of your choice in your aura gain the same damage resistance provided by your Storm Soul, letting you shelter allies from the elements."
+        ),
+        SubclassFeature(
+            name="Raging Storm",
+            level=14,
+            description="Your aura lashes out when creatures in it harm your allies. Depending on your environment, you can knock foes prone with thunder, deal lightning damage, or reduce an enemy's speed as the tundra freezes their stride."
+        )
+    ]
+)
+
+PATH_OF_THE_ZEALOT = Subclass(
+    name="Path of the Zealot",
+    class_name="Barbarian",
+    description="Zealots channel divine fury through their rage, becoming holy terrors who refuse to fall.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Divine Fury",
+            level=3,
+            description="While raging, the first creature you hit on each of your turns takes extra necrotic or radiant damage equal to 1d6 + half your barbarian level as divine wrath erupts through the blow."
+        ),
+        SubclassFeature(
+            name="Warrior of the Gods",
+            level=3,
+            description="Spells that raise you from the dead don't require material components, making it easier for allies to return you to the fight."
+        ),
+        SubclassFeature(
+            name="Fanatical Focus",
+            level=6,
+            description="Once per rage you can reroll a failed saving throw, representing your stubborn faith clawing you back from disaster."
+        ),
+        SubclassFeature(
+            name="Zealous Presence",
+            level=10,
+            description="As a bonus action, unleash a battle cry that grants you and up to ten creatures advantage on attack rolls and saving throws for 1 minute or until you end the rage."
+        ),
+        SubclassFeature(
+            name="Rage Beyond Death",
+            level=14,
+            description="While raging you fight on at 0 hit points without falling unconscious, only succumbing when your rage ends and you still have 0 hit points."
+        )
+    ]
+)
+
+PATH_OF_THE_BEAST = Subclass(
+    name="Path of the Beast",
+    class_name="Barbarian",
+    description="Your inner beast awakens when you rage, letting you manifest natural weapons and hunt with feral instincts.",
+    selection_level=3,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Form of the Beast",
+            level=3,
+            description="When you enter your rage you can manifest a bite, claws, or tail that lasts for the rage, each providing unique attack options and scaling damage."
+        ),
+        SubclassFeature(
+            name="Bestial Soul",
+            level=6,
+            description="Your natural weapons count as magical and adapt to the environment, granting benefits like climbing, swimming, or breathing underwater depending on the terrain you rest in."
+        ),
+        SubclassFeature(
+            name="Infectious Fury",
+            level=10,
+            description="Once per turn when you hit with your Form of the Beast, you can force a Wisdom save to either deal psychic damage or compel the target to use its reaction to attack another creature of your choice."
+        ),
+        SubclassFeature(
+            name="Call the Hunt",
+            level=14,
+            description="When you enter your rage you can share your ferocity with willing creatures, granting them bonus damage while you gain temporary hit points for each one."
+        )
+    ]
+)
+
+PATH_OF_WILD_MAGIC = Subclass(
+    name="Path of Wild Magic",
+    class_name="Barbarian",
+    description="Wild Magic barbarians embrace unpredictable forces, channeling planar energies that erupt each time they rage.",
+    selection_level=3,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Magic Awareness",
+            level=3,
+            description="As an action you can sense magic for 1 minute, learning the school of any spell or magic item within 60 feet a number of times per long rest equal to your proficiency bonus."
+        ),
+        SubclassFeature(
+            name="Wild Surge",
+            level=3,
+            description="Whenever you rage, roll on the Wild Magic table to produce random effects such as teleporting motes, spectral vines, or detonating bolts that linger for the rage's duration."
+        ),
+        SubclassFeature(
+            name="Bolstering Magic",
+            level=6,
+            description="You can use an action to bolster a creature, either granting a bonus d3 to attack and ability checks for 10 minutes or restoring an expended spell slot of level equal to or less than half your proficiency bonus."
+        ),
+        SubclassFeature(
+            name="Unstable Backlash",
+            level=10,
+            description="When you take damage or fail a save while raging, you can use a reaction to roll again on the Wild Magic table and immediately use the new effect, potentially changing your aura mid-battle."
+        ),
+        SubclassFeature(
+            name="Controlled Surge",
+            level=14,
+            description="Whenever you roll on your Wild Magic table, you can roll twice and choose which effect manifests, exerting some control over the chaos."
+        )
+    ]
+)
+
 # ========== BARD SUBCLASSES ==========
 
 COLLEGE_OF_LORE = Subclass(
@@ -375,16 +1740,100 @@ COLLEGE_OF_VALOR = Subclass(
     ]
 )
 
-# Dicionário de subclasses por classe
-BARBARIAN_SUBCLASSES = {
-    "Path of the Berserker": BERSERKER,
-    "Path of the Totem Warrior": TOTEM_WARRIOR
-}
+COLLEGE_OF_GLAMOUR = Subclass(
+    name="College of Glamour",
+    class_name="Bard",
+    description="Glamour bards hail from the Feywild and wield otherworldly charisma to inspire adoration or obedience from all who witness their performances.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Mantle of Inspiration",
+            level=3,
+            description="As a bonus action you expend a Bardic Inspiration to grant temporary hit points and allow immediate movement without opportunity attacks to a number of creatures you can see."
+        ),
+        SubclassFeature(
+            name="Enthralling Performance",
+            level=3,
+            description="After performing for at least 1 minute, you can charm and enthrall a number of humanoids, making them idolize you for 1 hour unless they succeed on a save."
+        ),
+        SubclassFeature(
+            name="Mantle of Majesty",
+            level=6,
+            description="You can cloak yourself in fey magic for 1 minute, casting command as a bonus action each turn without expending spell slots, once per long rest."
+        ),
+        SubclassFeature(
+            name="Unbreakable Majesty",
+            level=14,
+            description="As a bonus action you assume a magically majestic presence for 1 minute, imposing disadvantage on attacks against you and being able to force saves on creatures that target you."
+        )
+    ]
+)
 
-BARD_SUBCLASSES = {
-    "College of Lore": COLLEGE_OF_LORE,
-    "College of Valor": COLLEGE_OF_VALOR
-}
+COLLEGE_OF_SWORDS = Subclass(
+    name="College of Swords",
+    class_name="Bard",
+    description="Bards of the College of Swords have mastered blade and performance alike, dancing through battle with whirling steel and flourished magic.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Bonus Proficiencies",
+            level=3,
+            description="You gain proficiency with medium armor and scimitars, and you can use a weapon as a spellcasting focus for bard spells."
+        ),
+        SubclassFeature(
+            name="Fighting Style",
+            level=3,
+            description="You adopt a Fighting Style from Dueling or Two-Weapon Fighting, reflecting your martial training."
+        ),
+        SubclassFeature(
+            name="Blade Flourish",
+            level=3,
+            description="Whenever you take the Attack action you can expend a Bardic Inspiration die to perform a defensive, slashing, or mobile flourish that grants additional benefits."
+        ),
+        SubclassFeature(
+            name="Extra Attack",
+            level=6,
+            description="You can attack twice, instead of once, whenever you take the Attack action on your turn."
+        ),
+        SubclassFeature(
+            name="Master's Flourish",
+            level=14,
+            description="Your blade flourishes now use a d6 instead of expending Bardic Inspiration, letting you unleash them each turn."
+        )
+    ]
+)
+
+COLLEGE_OF_WHISPERS = Subclass(
+    name="College of Whispers",
+    class_name="Bard",
+    description="Whispers bards unravel secrets and sow paranoia, wielding psychic blades and stolen identities to manipulate from the shadows.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Psychic Blades",
+            level=3,
+            description="When you hit a creature with a weapon attack, you can expend a Bardic Inspiration to deal extra psychic damage, scaling with your Bardic Inspiration die."
+        ),
+        SubclassFeature(
+            name="Words of Terror",
+            level=3,
+            description="Over 1 minute of conversation you can instill paranoia in a humanoid, causing it to become frightened of a creature of your choice for 1 hour if it fails a save."
+        ),
+        SubclassFeature(
+            name="Mantle of Whispers",
+            level=6,
+            description="When a humanoid dies within 30 feet, you can capture its shadow to disguise yourself as that person for 1 hour, gaining access to its memories for social checks."
+        ),
+        SubclassFeature(
+            name="Shadow Lore",
+            level=14,
+            description="As an action you whisper dark knowledge to magically frighten a creature, charming it for 8 hours if it fails a Wisdom save and making it regard you or a target as a trusted friend."
+        )
+    ]
+)
 
 # ========== CLERIC SUBCLASSES ==========
 
@@ -469,12 +1918,22 @@ WAR_DOMAIN = Subclass(
 # Dicionário de subclasses por classe
 BARBARIAN_SUBCLASSES = {
     "Path of the Berserker": BERSERKER,
-    "Path of the Totem Warrior": TOTEM_WARRIOR
+    "Path of the Totem Warrior": TOTEM_WARRIOR,
+    "Path of the Ancestral Guardian": PATH_OF_THE_ANCESTRAL_GUARDIAN,
+    "Path of the Storm Herald": PATH_OF_THE_STORM_HERALD,
+    "Path of the Zealot": PATH_OF_THE_ZEALOT,
+    "Path of the Beast": PATH_OF_THE_BEAST,
+    "Path of Wild Magic": PATH_OF_WILD_MAGIC,
 }
 
 BARD_SUBCLASSES = {
     "College of Lore": COLLEGE_OF_LORE,
-    "College of Valor": COLLEGE_OF_VALOR
+    "College of Valor": COLLEGE_OF_VALOR,
+    "College of Glamour": COLLEGE_OF_GLAMOUR,
+    "College of Swords": COLLEGE_OF_SWORDS,
+    "College of Whispers": COLLEGE_OF_WHISPERS,
+    "College of Creation": COLLEGE_OF_CREATION,
+    "College of Eloquence": COLLEGE_OF_ELOQUENCE,
 }
 
 CLERIC_SUBCLASSES = {
@@ -484,7 +1943,11 @@ CLERIC_SUBCLASSES = {
     "Nature Domain": NATURE_DOMAIN,
     "Tempest Domain": TEMPEST_DOMAIN,
     "Trickery Domain": TRICKERY_DOMAIN,
-    "War Domain": WAR_DOMAIN
+    "War Domain": WAR_DOMAIN,
+    "Forge Domain": FORGE_DOMAIN,
+    "Grave Domain": GRAVE_DOMAIN,
+    "Peace Domain": PEACE_DOMAIN,
+    "Twilight Domain": TWILIGHT_DOMAIN,
 }
 
 # ========== DRUID SUBCLASSES ==========
@@ -562,9 +2025,79 @@ CIRCLE_OF_THE_MOON = Subclass(
     ]
 )
 
+CIRCLE_OF_DREAMS = Subclass(
+    name="Circle of Dreams",
+    class_name="Druid",
+    description="Dreams druids draw power from the Feywild, soothing allies and weaving restorative magic inspired by the Summer Court.",
+    selection_level=2,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Balm of the Summer Court",
+            level=2,
+            description="You have a pool of fey energy represented by d6s equal to twice your druid level. As a bonus action you can heal a creature within 120 feet, spending up to half your druid level dice to restore hit points and grant temporary hit points."
+        ),
+        SubclassFeature(
+            name="Hearth of Moonlight and Shadow",
+            level=6,
+            description="During a short or long rest you can create a 30-foot sphere ward that grants +5 to Stealth and Perception checks for resting creatures and blocks light from escaping."
+        ),
+        SubclassFeature(
+            name="Hidden Paths",
+            level=10,
+            description="You can magically teleport up to 60 feet as a bonus action, and you can teleport an ally you touch up to 30 feet as an action, multiple times per long rest equal to your Wisdom modifier."
+        ),
+        SubclassFeature(
+            name="Walker in Dreams",
+            level=14,
+            description="You can cast Dream, Scrying, or Teleportation Circle (to the last place you took a long rest on the same plane) without expending spell slots once per long rest."
+        )
+    ]
+)
+
+CIRCLE_OF_THE_SHEPHERD = Subclass(
+    name="Circle of the Shepherd",
+    class_name="Druid",
+    description="Shepherd druids protect beasts and fey, summoning spiritual guardians that bolster allies and commanded creatures.",
+    selection_level=2,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Speech of the Woods",
+            level=2,
+            description="You learn Sylvan and can communicate with beasts and many fey, understanding them regardless of language."
+        ),
+        SubclassFeature(
+            name="Spirit Totem",
+            level=2,
+            description="As a bonus action you summon a bear, hawk, or unicorn spirit for 1 minute that grants buffs such as temporary hit points, advantage on Perception checks, or enhanced healing within its aura."
+        ),
+        SubclassFeature(
+            name="Mighty Summoner",
+            level=6,
+            description="Creatures you conjure gain 2 extra hit points per Hit Die and their natural attacks count as magical for overcoming resistances."
+        ),
+        SubclassFeature(
+            name="Guardian Spirit",
+            level=10,
+            description="When a creature you summoned ends its turn in your Spirit Totem aura, it regains hit points equal to half your druid level."
+        ),
+        SubclassFeature(
+            name="Faithful Summons",
+            level=14,
+            description="When you are reduced to 0 hit points or incapacitated unwillingly, you can automatically cast Conjure Animals (as if using an 8th-level slot) to summon guardian beasts without concentration."
+        )
+    ]
+)
+
 DRUID_SUBCLASSES = {
     "Circle of the Land": CIRCLE_OF_THE_LAND,
-    "Circle of the Moon": CIRCLE_OF_THE_MOON
+    "Circle of the Moon": CIRCLE_OF_THE_MOON,
+    "Circle of Dreams": CIRCLE_OF_DREAMS,
+    "Circle of the Shepherd": CIRCLE_OF_THE_SHEPHERD,
+    "Circle of Spores": CIRCLE_OF_SPORES,
+    "Circle of Stars": CIRCLE_OF_STARS,
+    "Circle of Wildfire": CIRCLE_OF_WILDFIRE,
 }
 
 # ========== FIGHTER SUBCLASSES ==========
@@ -676,10 +2209,135 @@ ELDRITCH_KNIGHT = Subclass(
     ]
 )
 
+ARCANE_ARCHER = Subclass(
+    name="Arcane Archer",
+    class_name="Fighter",
+    description="Arcane Archers weave magic into arrow shots, bending trajectories and imbuing volleys with specialized arcane effects.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Arcane Archer Lore",
+            level=3,
+            description="You gain proficiency in either Arcana or Nature and learn the Prestidigitation or Druidcraft cantrip as you study elven arrowcraft."
+        ),
+        SubclassFeature(
+            name="Arcane Shot",
+            level=3,
+            description="You learn magical shot options and can infuse arrows twice per short rest to impose effects such as banishing, ensnaring, or piercing defenses (save DC = 8 + proficiency bonus + Intelligence modifier)."
+        ),
+        SubclassFeature(
+            name="Magic Arrow",
+            level=7,
+            description="Your arrows count as magical for overcoming resistance and immunity to nonmagical attacks."
+        ),
+        SubclassFeature(
+            name="Curving Shot",
+            level=7,
+            description="When you miss with a magic arrow attack you can use a bonus action to reroll the attack against a different target within 60 feet of the original."
+        ),
+        SubclassFeature(
+            name="Ever-Ready Shot",
+            level=15,
+            description="When you roll initiative and have no uses of Arcane Shot remaining, you regain one use."
+        )
+    ]
+)
+
+CAVALIER = Subclass(
+    name="Cavalier",
+    class_name="Fighter",
+    description="Cavaliers are battlefield guardians who excel at mounted combat, locking down foes and defending allies with unyielding presence.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Bonus Proficiencies",
+            level=3,
+            description="You gain proficiency in one of the following skills of your choice: Animal Handling, History, Insight, Performance, or Persuasion. You also gain proficiency with one language or with smith's tools."
+        ),
+        SubclassFeature(
+            name="Born to the Saddle",
+            level=3,
+            description="You have advantage on saving throws made to avoid falling off your mount, mounting or dismounting costs only 5 feet of movement, and you land on your feet if you fall while conscious."
+        ),
+        SubclassFeature(
+            name="Unwavering Mark",
+            level=3,
+            description="When you hit a creature with a melee attack, you can mark it until the end of your next turn. Marked foes have disadvantage on attacks that don't include you, and if they hit an ally you can make a special bonus action attack dealing extra damage equal to half your fighter level."
+        ),
+        SubclassFeature(
+            name="Warding Maneuver",
+            level=7,
+            description="As a reaction when you or a creature within 5 feet is hit, you can roll a d8 and add the number to AC. If the attack still hits, the target has resistance to the damage. Uses per long rest equal to your Constitution modifier."
+        ),
+        SubclassFeature(
+            name="Hold the Line",
+            level=10,
+            description="Creatures you hit with opportunity attacks have their speed reduced to 0 for the rest of the turn, and you can make opportunity attacks against creatures that enter your reach."
+        ),
+        SubclassFeature(
+            name="Ferocious Charger",
+            level=15,
+            description="If you move at least 10 feet toward a target before hitting it with a melee attack, it must succeed on a Strength saving throw or be knocked prone."
+        ),
+        SubclassFeature(
+            name="Vigilant Defender",
+            level=18,
+            description="You can take a number of reactions each round equal to your proficiency bonus, though only one per turn, letting you defend multiple allies."
+        )
+    ]
+)
+
+SAMURAI = Subclass(
+    name="Samurai",
+    class_name="Fighter",
+    description="Samurai steel their spirits with unwavering resolve, turning fighting spirit into bursts of accuracy, durability, and relentless assaults.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Bonus Proficiency",
+            level=3,
+            description="You gain proficiency in History, Insight, Performance, or Persuasion, or you can learn one language of your choice."
+        ),
+        SubclassFeature(
+            name="Fighting Spirit",
+            level=3,
+            description="As a bonus action you can give yourself advantage on weapon attacks until the end of the current turn and gain temporary hit points equal to your fighter level. You can use this feature a number of times equal to your proficiency bonus per long rest."
+        ),
+        SubclassFeature(
+            name="Elegant Courtier",
+            level=7,
+            description="You add your Wisdom modifier to Charisma (Persuasion) checks and gain proficiency in Wisdom saving throws if you don't already have it."
+        ),
+        SubclassFeature(
+            name="Tireless Spirit",
+            level=10,
+            description="When you roll initiative and have no Fighting Spirit uses remaining, you regain one use."
+        ),
+        SubclassFeature(
+            name="Rapid Strike",
+            level=15,
+            description="Once per turn when you have advantage on an attack roll, you can forgo that advantage to make an additional weapon attack as part of the same action."
+        ),
+        SubclassFeature(
+            name="Strength Before Death",
+            level=18,
+            description="When damage would reduce you to 0 hit points, you can use your reaction to delay the effect, immediately taking an extra turn."
+        )
+    ]
+)
+
 FIGHTER_SUBCLASSES = {
     "Champion": CHAMPION,
     "Battle Master": BATTLE_MASTER,
-    "Eldritch Knight": ELDRITCH_KNIGHT
+    "Eldritch Knight": ELDRITCH_KNIGHT,
+    "Arcane Archer": ARCANE_ARCHER,
+    "Cavalier": CAVALIER,
+    "Samurai": SAMURAI,
+    "Psi Warrior": PSI_WARRIOR,
+    "Rune Knight": RUNE_KNIGHT,
 }
 
 # ========== MONK SUBCLASSES ==========
@@ -693,22 +2351,22 @@ WAY_OF_THE_OPEN_HAND = Subclass(
         SubclassFeature(
             name="Open Hand Technique",
             level=3,
-            description="You can manipulate your enemy's ki when you harness your own. Whenever you hit a creature with one of the attacks granted by your Flurry of Blows, you can impose one of the following effects on that target:\n• It must succeed on a Dexterity saving throw or be knocked prone.\n• It must make a Strength saving throw. If it fails, you can push it up to 15 feet away from you.\n• It can't take reactions until the end of your next turn."
+            description="Whenever you hit a creature with one of the attacks granted by your Flurry of Blows, you can impose one of the following effects: knock it prone, push it up to 15 feet away, or prevent it from taking reactions until the end of your next turn."
         ),
         SubclassFeature(
             name="Wholeness of Body",
             level=6,
-            description="You gain the ability to heal yourself. As an action, you can regain hit points equal to three times your monk level. You must finish a long rest before you can use this feature again."
+            description="You gain the ability to heal yourself. As an action, you can regain hit points equal to three times your monk level once per long rest."
         ),
         SubclassFeature(
             name="Tranquility",
             level=11,
-            description="You can enter a special meditation that surrounds you with an aura of peace. At the end of a long rest, you gain the effect of a Sanctuary spell that lasts until the start of your next long rest (the spell can end early as normal). The saving throw DC for the spell equals 8 + your Wisdom modifier + your proficiency bonus."
+            description="You can enter a meditation at the end of a long rest to gain the effect of a Sanctuary spell that lasts until the start of your next long rest (ending early as normal)."
         ),
         SubclassFeature(
             name="Quivering Palm",
             level=17,
-            description="You gain the ability to set up lethal vibrations in someone's body. When you hit a creature with an unarmed strike, you can spend 3 ki points to start these imperceptible vibrations, which last for a number of days equal to your monk level. The vibrations are harmless unless you use your action to end them. To do so, you and the target must be on the same plane of existence. When you use this action, the creature must make a Constitution saving throw. If it fails, it is reduced to 0 hit points. If it succeeds, it takes 10d10 necrotic damage. You can have only one creature under the effect of this feature at a time. You can choose to end the vibrations harmlessly without using an action."
+            description="You can spend 3 ki points to set up lethal vibrations in a creature you hit with an unarmed strike. As an action later, you can force that creature to make a Constitution save, reducing it to 0 hit points on a failure or dealing 10d10 necrotic damage on a success."
         )
     ]
 )
@@ -771,10 +2429,110 @@ WAY_OF_THE_FOUR_ELEMENTS = Subclass(
     ]
 )
 
+WAY_OF_THE_DRUNKEN_MASTER = Subclass(
+    name="Way of the Drunken Master",
+    class_name="Monk",
+    description="Drunken Masters channel erratic movements into baffling defense, staggering through battle while striking with deceptive precision.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Bonus Proficiencies",
+            level=3,
+            description="You gain proficiency in Performance and brewer's supplies, adopting the theatrics and rituals of intoxicated fighting." 
+        ),
+        SubclassFeature(
+            name="Drunken Technique",
+            level=3,
+            description="Whenever you use Flurry of Blows you gain the benefit of Disengage and your walking speed increases by 10 feet until the end of the turn as you weave unpredictably."
+        ),
+        SubclassFeature(
+            name="Tipsy Sway",
+            level=6,
+            description="You can stand from prone by expending only 5 feet of movement (Leap to Your Feet) and when a melee attack misses you, you can spend 1 ki to redirect it against another creature within 5 feet of you (Redirect Attack)."
+        ),
+        SubclassFeature(
+            name="Drunkard's Luck",
+            level=11,
+            description="When you make a roll with disadvantage, you can spend 2 ki points to cancel the disadvantage for that roll, trusting improvised luck."
+        ),
+        SubclassFeature(
+            name="Intoxicated Frenzy",
+            level=17,
+            description="When you use Flurry of Blows you can make up to three additional attacks (each against a different creature) beyond the normal two, unleashing a whirlwind of staggering strikes."
+        )
+    ]
+)
+
+WAY_OF_THE_KENSEI = Subclass(
+    name="Way of the Kensei",
+    class_name="Monk",
+    description="Kensei monks hone body and blade together, treating chosen weapons as extensions of their ki-forged discipline.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Path of the Kensei",
+            level=3,
+            description="You designate two simple or martial weapons as kensei weapons (more at later levels), gain Agile Parry when you make an unarmed strike while wielding a kensei melee weapon, gain Kensei's Shot to add 1d4 to ranged attacks as a bonus action, and learn calligraphy or painter's supplies (Way of the Brush)."
+        ),
+        SubclassFeature(
+            name="One with the Blade",
+            level=6,
+            description="Your kensei weapons count as magical for overcoming resistance, and you can spend 1 ki to deal an extra 1d4 damage on a hit with a kensei weapon (Deft Strike)."
+        ),
+        SubclassFeature(
+            name="Sharpen the Blade",
+            level=11,
+            description="As a bonus action you can spend up to 3 ki points to grant a kensei weapon a +1 per ki (maximum +3) bonus to attack and damage rolls for 1 minute."
+        ),
+        SubclassFeature(
+            name="Unerring Accuracy",
+            level=17,
+            description="Once on each of your turns when you miss with a monk weapon or kensei weapon attack, you can reroll the attack, ensuring your practiced strikes rarely fail."
+        )
+    ]
+)
+
+WAY_OF_THE_SUN_SOUL = Subclass(
+    name="Way of the Sun Soul",
+    class_name="Monk",
+    description="Sun Soul monks project radiant ki as bolts and bursts of light, burning foes with incandescent martial arts.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Radiant Sun Bolt",
+            level=3,
+            description="You can hurl radiant bolts with a range of 30 feet as part of the Attack action (or as extra attacks when using Flurry of Blows). The bolts use Dexterity for attack and damage rolls and deal radiant damage."
+        ),
+        SubclassFeature(
+            name="Searing Arc Strike",
+            level=6,
+            description="Immediately after taking the Attack action you can spend ki to cast Burning Hands as a bonus action, empowering the spell with additional ki to raise its level."
+        ),
+        SubclassFeature(
+            name="Searing Sunburst",
+            level=11,
+            description="You can create a 20-foot radius ball of radiant light at up to 150 feet; creatures failing a Constitution save take radiant damage (you can spend ki to increase the damage)."
+        ),
+        SubclassFeature(
+            name="Sun Shield",
+            level=17,
+            description="You shed bright light in a 30-foot radius and dim light for the same distance, and when a creature hits you you can use your reaction to deal radiant damage equal to 5 + your Wisdom modifier if it is within 30 feet."
+        )
+    ]
+)
+
 MONK_SUBCLASSES = {
     "Way of the Open Hand": WAY_OF_THE_OPEN_HAND,
     "Way of Shadow": WAY_OF_SHADOW,
-    "Way of the Four Elements": WAY_OF_THE_FOUR_ELEMENTS
+    "Way of the Four Elements": WAY_OF_THE_FOUR_ELEMENTS,
+    "Way of the Drunken Master": WAY_OF_THE_DRUNKEN_MASTER,
+    "Way of the Kensei": WAY_OF_THE_KENSEI,
+    "Way of the Sun Soul": WAY_OF_THE_SUN_SOUL,
+    "Way of Mercy": WAY_OF_MERCY,
+    "Way of the Astral Self": WAY_OF_THE_ASTRAL_SELF,
 }
 
 # ========== PALADIN SUBCLASSES ==========
@@ -896,10 +2654,94 @@ OATH_OF_VENGEANCE = Subclass(
     ]
 )
 
+OATH_OF_CONQUEST = Subclass(
+    name="Oath of Conquest",
+    class_name="Paladin",
+    description="Conquest paladins crush the forces of chaos, enforcing iron discipline through fear and overwhelming might.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Oath Spells",
+            level=3,
+            description="You gain oath spells at the paladin levels listed.\n3rd: Armor of Agathys, Command\n5th: Hold Person, Spiritual Weapon\n9th: Bestow Curse, Fear\n13th: Dominate Beast, Stoneskin\n17th: Cloudkill, Dominate Person"
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Conquering Presence",
+            level=3,
+            description="As an action you unleash a menacing aura that forces each creature of your choice within 30 feet to make a Wisdom save or become frightened of you for 1 minute."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Guided Strike",
+            level=3,
+            description="When you make an attack roll you can add +10 to the roll after seeing the result but before knowing if it hits, representing your relentless focus."
+        ),
+        SubclassFeature(
+            name="Aura of Conquest",
+            level=7,
+            description="Creatures frightened of you that start their turn within 10 feet (30 feet at 18th level) have their speed reduced to 0 and take psychic damage equal to half your paladin level."
+        ),
+        SubclassFeature(
+            name="Scornful Rebuke",
+            level=15,
+            description="When a creature hits you, it takes psychic damage equal to your Charisma modifier if it is within 10 feet, reflecting your contempt for resistance."
+        ),
+        SubclassFeature(
+            name="Invincible Conqueror",
+            level=20,
+            description="As a bonus action you can enter a state for 1 minute granting resistance to all damage, advantage on attack rolls, and one extra attack whenever you take the Attack action. Once per long rest."
+        )
+    ]
+)
+
+OATH_OF_REDEMPTION = Subclass(
+    name="Oath of Redemption",
+    class_name="Paladin",
+    description="Redemption paladins seek peace above all, enduring harm to turn foes toward righteous paths.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Oath Spells",
+            level=3,
+            description="You gain oath spells at the paladin levels listed.\n3rd: Sanctuary, Sleep\n5th: Calm Emotions, Hold Person\n9th: Counterspell, Hypnotic Pattern\n13th: Otiluke's Resilient Sphere, Stoneskin\n17th: Hold Monster, Wall of Force"
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Emissary of Peace",
+            level=3,
+            description="As a bonus action you grant yourself +5 to Persuasion checks for 10 minutes, radiating calm authority."
+        ),
+        SubclassFeature(
+            name="Channel Divinity: Rebuke the Violent",
+            level=3,
+            description="As a reaction when an attacker within 30 feet deals damage, you force it to make a Wisdom save or take radiant damage equal to the damage it just dealt."
+        ),
+        SubclassFeature(
+            name="Aura of the Guardian",
+            level=7,
+            description="When a creature you can see within 10 feet (30 feet at 18th level) takes damage, you can use your reaction to take that damage instead, reducing it on the ally to zero."
+        ),
+        SubclassFeature(
+            name="Protective Spirit",
+            level=15,
+            description="During each of your turns while below half hit points, you regain 1d6 + half your paladin level hit points, reflecting your inner resolve."
+        ),
+        SubclassFeature(
+            name="Emissary of Redemption",
+            level=20,
+            description="You gain resistance to all damage from creatures that hit you (unless they deal psychic damage or you attack them), and when such a creature hits you it takes radiant damage equal to the damage you take. The aura ends for a creature if you attack it or force it to make a save."
+        )
+    ]
+)
+
 PALADIN_SUBCLASSES = {
     "Oath of Devotion": OATH_OF_DEVOTION,
     "Oath of the Ancients": OATH_OF_THE_ANCIENTS,
-    "Oath of Vengeance": OATH_OF_VENGEANCE
+    "Oath of Vengeance": OATH_OF_VENGEANCE,
+    "Oath of Conquest": OATH_OF_CONQUEST,
+    "Oath of Redemption": OATH_OF_REDEMPTION,
+    "Oath of Glory": OATH_OF_GLORY,
+    "Oath of the Watchers": OATH_OF_THE_WATCHERS,
 }
 
 # ========== RANGER SUBCLASSES ==========
@@ -962,9 +2804,134 @@ BEAST_MASTER = Subclass(
     ]
 )
 
+GLOOM_STALKER = Subclass(
+    name="Gloom Stalker",
+    class_name="Ranger",
+    description="Gloom Stalkers ambush foes from oppressive darkness, striking swiftly before vanishing back into the shadows.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Gloom Stalker Magic",
+            level=3,
+            description="You gain additional spells that reflect subterranean stealth, such as Disguise Self, Rope Trick, Fear, Greater Invisibility, and Seeming; they count as ranger spells for you."
+        ),
+        SubclassFeature(
+            name="Dread Ambusher",
+            level=3,
+            description="You gain +10 walking speed, add Wisdom modifier to initiative, and on the first turn of combat you can make an extra attack that deals an additional 1d8 damage on a hit."
+        ),
+        SubclassFeature(
+            name="Umbral Sight",
+            level=3,
+            description="You gain darkvision or extend it by 30 feet, and creatures relying on darkvision can't see you while you're in darkness."
+        ),
+        SubclassFeature(
+            name="Iron Mind",
+            level=7,
+            description="You gain proficiency in Wisdom saving throws; if you already have it, choose Intelligence or Charisma saves instead."
+        ),
+        SubclassFeature(
+            name="Stalker's Flurry",
+            level=11,
+            description="Once per turn when you miss with a weapon attack, you can make another attack as part of the same action."
+        ),
+        SubclassFeature(
+            name="Shadowy Dodge",
+            level=15,
+            description="When a creature makes an attack roll against you and doesn't have advantage, you can use your reaction to impose disadvantage as you blur into darkness."
+        )
+    ]
+)
+
+HORIZON_WALKER = Subclass(
+    name="Horizon Walker",
+    class_name="Ranger",
+    description="Horizon Walkers guard planar pathways, teleporting across the battlefield and channeling planar energies into their strikes.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Horizon Walker Magic",
+            level=3,
+            description="You gain additional spells tied to planar travel, such as Protection from Evil and Good, Misty Step, Haste, Banishment, and Teleportation Circle."
+        ),
+        SubclassFeature(
+            name="Detect Portal",
+            level=3,
+            description="As an action you can sense any planar portal within 1 mile of you, learning its direction and distance; you can use this feature a number of times equal to your Wisdom modifier per long rest."
+        ),
+        SubclassFeature(
+            name="Planar Warrior",
+            level=3,
+            description="As a bonus action you can focus on a creature, turning one of your attacks that turn into force damage and adding 1d8 force damage (2d8 at 11th level) while ignoring resistance."
+        ),
+        SubclassFeature(
+            name="Ethereal Step",
+            level=7,
+            description="You can cast Etherealness without components once per short or long rest, stepping briefly into the Ethereal Plane."
+        ),
+        SubclassFeature(
+            name="Distant Strike",
+            level=11,
+            description="When you take the Attack action you can teleport up to 10 feet before each attack. If you attack at least two different creatures, you can make one additional attack."
+        ),
+        SubclassFeature(
+            name="Spectral Defense",
+            level=15,
+            description="When you take damage from an attack you can use your reaction to halve the damage as your form flickers between planes."
+        )
+    ]
+)
+
+MONSTER_SLAYER = Subclass(
+    name="Monster Slayer",
+    class_name="Ranger",
+    description="Monster Slayers hunt supernatural threats with specialized techniques to disrupt magic and finish resilient foes.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Monster Slayer Magic",
+            level=3,
+            description="You gain additional spells such as Protection from Evil and Good, Zone of Truth, Magic Circle, Banishment, and Hold Monster that aid in battling extraplanar foes."
+        ),
+        SubclassFeature(
+            name="Hunter's Sense",
+            level=3,
+            description="As an action you can learn a creature's damage immunities, resistances, and vulnerabilities a number of times per long rest equal to your Wisdom modifier."
+        ),
+        SubclassFeature(
+            name="Slayer's Prey",
+            level=3,
+            description="As a bonus action you designate a target to deal an extra 1d6 damage once per turn when you hit it with a weapon attack; this lasts until you finish a short or long rest."
+        ),
+        SubclassFeature(
+            name="Supernatural Defense",
+            level=7,
+            description="When the target of your Slayer's Prey forces you to make a saving throw or you suffer an effect requiring an ability check, you add 1d6 to the roll."
+        ),
+        SubclassFeature(
+            name="Magic-User's Nemesis",
+            level=11,
+            description="When a creature you can see casts a spell or teleports, you can use your reaction to force it to make a Wisdom save; on a failure the spell fails or the teleport is wasted."
+        ),
+        SubclassFeature(
+            name="Slayer's Counter",
+            level=15,
+            description="When the target of your Slayer's Prey forces you to make a saving throw, you can use your reaction to make one weapon attack against it. On a hit, the save automatically succeeds, reflecting your ability to disrupt its magic."
+        )
+    ]
+)
+
 RANGER_SUBCLASSES = {
     "Hunter": HUNTER,
-    "Beast Master": BEAST_MASTER
+    "Beast Master": BEAST_MASTER,
+    "Gloom Stalker": GLOOM_STALKER,
+    "Horizon Walker": HORIZON_WALKER,
+    "Monster Slayer": MONSTER_SLAYER,
+    "Fey Wanderer": FEY_WANDERER,
+    "Swarmkeeper": SWARMKEEPER,
 }
 
 # ========== ROGUE SUBCLASSES ==========
@@ -1071,10 +3038,161 @@ ARCANE_TRICKSTER = Subclass(
     ]
 )
 
+INQUISITIVE = Subclass(
+    name="Inquisitive",
+    class_name="Rogue",
+    description="Inquisitive rogues excel at rooting out secrets, reading foes, and exploiting every hint of deception.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Ear for Deceit",
+            level=3,
+            description="Whenever you make an Insight check to determine if a creature is lying, treat a rolled 7 or lower on the d20 as an 8."
+        ),
+        SubclassFeature(
+            name="Eye for Detail",
+            level=3,
+            description="You can use a bonus action to make a Perception check to spot hidden creatures or an Investigation check to uncover or decipher clues."
+        ),
+        SubclassFeature(
+            name="Insightful Fighting",
+            level=3,
+            description="As a bonus action you can make an Insight check contested by a creature's Deception. On a success you can use Sneak Attack against it even without advantage (unless you have disadvantage) for 1 minute or until you target another creature."
+        ),
+        SubclassFeature(
+            name="Steady Eye",
+            level=9,
+            description="If you move no more than half your speed on your turn, you have advantage on any Perception or Investigation check you make that turn."
+        ),
+        SubclassFeature(
+            name="Unerring Eye",
+            level=13,
+            description="As an action you can detect illusions, shapechangers, and magic disguises within 30 feet unless they succeed on a Charisma save; usable a number of times equal to your Wisdom modifier per long rest."
+        ),
+        SubclassFeature(
+            name="Eye for Weakness",
+            level=17,
+            description="When Insightful Fighting is active on a target, you deal an extra 3d6 damage the first time you hit that creature with Sneak Attack each turn."
+        )
+    ]
+)
+
+MASTERMIND = Subclass(
+    name="Mastermind",
+    class_name="Rogue",
+    description="Masterminds weave intrigue, mimicry, and battlefield tactics to turn every ally into an extension of their schemes.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Master of Intrigue",
+            level=3,
+            description="You gain proficiency with the disguise kit, forgery kit, and one gaming set; you learn two languages and can mimic speech and writing you've observed for 1 minute, fooling listeners with an Insight check contested by your Deception."
+        ),
+        SubclassFeature(
+            name="Master of Tactics",
+            level=3,
+            description="You can use the Help action as a bonus action, and when you help an ally attack a creature, the target can be within 30 feet of you if it can see or hear you."
+        ),
+        SubclassFeature(
+            name="Insightful Manipulator",
+            level=9,
+            description="After observing a creature for 1 minute outside combat, you can learn whether it is equal, superior, or inferior to you in Intelligence, Wisdom, Charisma, and class levels."
+        ),
+        SubclassFeature(
+            name="Misdirection",
+            level=13,
+            description="When a creature targets you with an attack while another creature is within 5 feet of you, you can use your reaction to cause the attack to target that other creature."
+        ),
+        SubclassFeature(
+            name="Soul of Deceit",
+            level=17,
+            description="Your thoughts can't be read unless you allow it; magic that would determine if you are lying indicates you are telling the truth, and you can present false thoughts when targeted by telepathy."
+        )
+    ]
+)
+
+SCOUT = Subclass(
+    name="Scout",
+    class_name="Rogue",
+    description="Scouts range ahead of companions, striking from the wilds with unmatched mobility and knowledge of the natural world.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Skirmisher",
+            level=3,
+            description="When a creature ends its turn within 5 feet of you, you can use your reaction to move up to half your speed without provoking opportunity attacks."
+        ),
+        SubclassFeature(
+            name="Survivalist",
+            level=3,
+            description="You gain proficiency in Nature and Survival, and your proficiency bonus is doubled for checks using those skills."
+        ),
+        SubclassFeature(
+            name="Superior Mobility",
+            level=9,
+            description="Your walking speed increases by 10 feet, and you gain climbing and swimming speeds equal to your walking speed."
+        ),
+        SubclassFeature(
+            name="Ambush Master",
+            level=13,
+            description="You have advantage on initiative rolls, and the first creature you hit in the first round of combat grants advantage on attacks against it until the start of your next turn."
+        ),
+        SubclassFeature(
+            name="Sudden Strike",
+            level=17,
+            description="Once on each of your turns you can make one extra weapon attack as part of the Attack action, and if it hits you can apply Sneak Attack even if you've already used it this turn."
+        )
+    ]
+)
+
+SWASHBUCKLER = Subclass(
+    name="Swashbuckler",
+    class_name="Rogue",
+    description="Swashbucklers dance through combat with panache, striking boldly and darting away before reprisals can land.",
+    selection_level=3,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Fancy Footwork",
+            level=3,
+            description="When you make a melee attack against a creature, that creature can't make opportunity attacks against you for the rest of your turn, whether or not you hit."
+        ),
+        SubclassFeature(
+            name="Rakish Audacity",
+            level=3,
+            description="You add your Charisma modifier to initiative, and you can use Sneak Attack against a creature if you are within 5 feet of it, no other creatures are within 5 feet of you, and you don't have disadvantage."
+        ),
+        SubclassFeature(
+            name="Panache",
+            level=9,
+            description="As an action you can make a Persuasion check contested by a creature's Insight to charm it (if friendly) or goad it into focusing on you (if hostile), imposing disadvantage on attacks against others."
+        ),
+        SubclassFeature(
+            name="Elegant Maneuver",
+            level=13,
+            description="As a bonus action you can gain advantage on the next Acrobatics or Athletics check you make during the same turn."
+        ),
+        SubclassFeature(
+            name="Master Duelist",
+            level=17,
+            description="When you miss with an attack, you can reroll it with advantage. Once you do so, you can't use this feature again until you finish a short or long rest."
+        )
+    ]
+)
+
 ROGUE_SUBCLASSES = {
     "Thief": THIEF,
     "Assassin": ASSASSIN,
-    "Arcane Trickster": ARCANE_TRICKSTER
+    "Arcane Trickster": ARCANE_TRICKSTER,
+    "Inquisitive": INQUISITIVE,
+    "Mastermind": MASTERMIND,
+    "Scout": SCOUT,
+    "Swashbuckler": SWASHBUCKLER,
+    "Phantom": PHANTOM,
+    "Soulknife": SOULKNIFE,
 }
 
 # ========== SORCERER SUBCLASSES ==========
@@ -1147,9 +3265,83 @@ WILD_MAGIC = Subclass(
     ]
 )
 
+DIVINE_SOUL = Subclass(
+    name="Divine Soul",
+    class_name="Sorcerer",
+    description="Divine Soul sorcerers are touched by the gods, blending arcane talent with clerical miracles and radiant resilience.",
+    selection_level=1,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Divine Magic",
+            level=1,
+            description="You learn additional spells from the cleric list based on an alignment affinity (Good, Evil, Law, Chaos, Neutral) and can replace them when you gain a sorcerer level."
+        ),
+        SubclassFeature(
+            name="Favored by the Gods",
+            level=1,
+            description="If you fail a saving throw or miss with an attack roll, you can add 2d4 to the roll once per short or long rest."
+        ),
+        SubclassFeature(
+            name="Empowered Healing",
+            level=6,
+            description="When you or an ally within 5 feet roll dice to restore hit points, you can spend 1 sorcery point to reroll any number of those dice."
+        ),
+        SubclassFeature(
+            name="Otherworldly Wings",
+            level=14,
+            description="As a bonus action you can manifest angelic or fiendish wings granting a flying speed equal to your walking speed until you dismiss them."
+        ),
+        SubclassFeature(
+            name="Unearthly Recovery",
+            level=18,
+            description="As a bonus action you can regain hit points equal to half your hit point maximum once per long rest."
+        )
+    ]
+)
+
+SHADOW_MAGIC = Subclass(
+    name="Shadow Magic",
+    class_name="Sorcerer",
+    description="Shadow Magic sorcerers draw power from the Shadowfell, wielding darkness and undead vigor to sap foes.",
+    selection_level=1,
+    source=SOURCE_XANATHARS,
+    features=[
+        SubclassFeature(
+            name="Eyes of the Dark",
+            level=1,
+            description="You gain darkvision (or extend it) to 120 feet and can spend 2 sorcery points to cast Darkness, seeing through it."
+        ),
+        SubclassFeature(
+            name="Strength of the Grave",
+            level=1,
+            description="When damage reduces you to 0 hit points, you can make a Charisma save to drop to 1 hit point instead, once per long rest."
+        ),
+        SubclassFeature(
+            name="Hound of Ill Omen",
+            level=6,
+            description="As a bonus action you can spend 3 sorcery points to summon a spectral hound that hunts a creature you can see, imposing disadvantage on saves against your spells."
+        ),
+        SubclassFeature(
+            name="Shadow Walk",
+            level=14,
+            description="As a bonus action you can teleport from one area of dim light or darkness to another within 120 feet."
+        ),
+        SubclassFeature(
+            name="Umbral Form",
+            level=18,
+            description="As a bonus action you can spend 6 sorcery points to gain resistance to all damage except force and radiant, and move through objects for 1 minute while in a shadowy form."
+        )
+    ]
+)
+
 SORCERER_SUBCLASSES = {
     "Draconic Bloodline": DRACONIC_BLOODLINE,
-    "Wild Magic": WILD_MAGIC
+    "Wild Magic": WILD_MAGIC,
+    "Divine Soul": DIVINE_SOUL,
+    "Shadow Magic": SHADOW_MAGIC,
+    "Aberrant Mind": ABERRANT_MIND,
+    "Clockwork Soul": CLOCKWORK_SOUL,
 }
 
 # ========== WARLOCK SUBCLASSES ==========
@@ -1259,10 +3451,49 @@ THE_GREAT_OLD_ONE = Subclass(
 WARLOCK_SUBCLASSES = {
     "The Archfey": THE_ARCHFEY,
     "The Fiend": THE_FIEND,
-    "The Great Old One": THE_GREAT_OLD_ONE
+    "The Great Old One": THE_GREAT_OLD_ONE,
+    "The Hexblade": THE_HEXBLADE,
+    "The Celestial": THE_CELESTIAL,
+    "The Fathomless": THE_FATHOMLESS,
+    "The Genie": THE_GENIE,
 }
 
 # ========== WIZARD SUBCLASSES ==========
+
+BLADESINGING = Subclass(
+    name="Bladesinging",
+    class_name="Wizard",
+    description="Bladesingers fuse swordplay with arcane artistry, weaving defensive magic into every strike.",
+    selection_level=2,
+    source=SOURCE_TASHAS,
+    features=[
+        SubclassFeature(
+            name="Training in War and Song",
+            level=2,
+            description="You gain proficiency with light armor and one one-handed melee weapon of your choice, and you gain proficiency in Performance if you don't already have it."
+        ),
+        SubclassFeature(
+            name="Bladesong",
+            level=2,
+            description="You can use a bonus action to start the Bladesong for 1 minute, gaining bonuses to AC, movement speed, Acrobatics checks, and concentration saves equal to your Intelligence modifier (uses equal to proficiency bonus)."
+        ),
+        SubclassFeature(
+            name="Extra Attack",
+            level=6,
+            description="You can attack twice, instead of once, whenever you take the Attack action on your turn, and you can replace one of the attacks with casting a cantrip."
+        ),
+        SubclassFeature(
+            name="Song of Defense",
+            level=10,
+            description="While your Bladesong is active, you can use your reaction to expend a spell slot and reduce damage you take by 5 × the slot's level."
+        ),
+        SubclassFeature(
+            name="Song of Victory",
+            level=14,
+            description="While Bladesong is active, you add your Intelligence modifier to the damage of your melee weapon attacks."
+        )
+    ]
+)
 
 SCHOOL_OF_ABJURATION = Subclass(
     name="School of Abjuration",
@@ -1544,7 +3775,10 @@ WIZARD_SUBCLASSES = {
     "School of Evocation": SCHOOL_OF_EVOCATION,
     "School of Illusion": SCHOOL_OF_ILLUSION,
     "School of Necromancy": SCHOOL_OF_NECROMANCY,
-    "School of Transmutation": SCHOOL_OF_TRANSMUTATION
+    "School of Transmutation": SCHOOL_OF_TRANSMUTATION,
+    "Bladesinging": BLADESINGING,
+    "School of War Magic": SCHOOL_OF_WAR_MAGIC,
+    "School of Scribes": SCHOOL_OF_SCRIBES,
 }
 
 # Dicionário mestre de todas as subclasses
@@ -1570,7 +3804,12 @@ class SubclassDatabase:
     @staticmethod
     def get_subclasses_for_class(class_name: str) -> Dict[str, Subclass]:
         """Retorna todas as subclasses disponíveis para uma classe"""
-        return ALL_SUBCLASSES.get(class_name, {})
+        subclasses = ALL_SUBCLASSES.get(class_name, {})
+        filtered: Dict[str, Subclass] = {}
+        for name, subclass in subclasses.items():
+            if SubclassDatabase._is_source_enabled(subclass):
+                filtered[name] = subclass
+        return filtered
     
     @staticmethod
     def get_subclass(class_name: str, subclass_name: str) -> Subclass:
@@ -1591,3 +3830,22 @@ class SubclassDatabase:
             "Wizard": 2
         }
         return special_levels.get(class_name, 3)
+
+    @staticmethod
+    def get_source_label(subclass: Optional[Subclass]) -> str:
+        if not subclass:
+            return ""
+        return SOURCE_LABELS.get(subclass.source, SOURCE_LABELS[SOURCE_CORE])
+
+    @staticmethod
+    def is_optional_source(subclass: Optional[Subclass]) -> bool:
+        if not subclass:
+            return False
+        return subclass.source in OPTIONAL_SOURCE_FLAGS
+
+    @staticmethod
+    def _is_source_enabled(subclass: Subclass) -> bool:
+        flag_key = OPTIONAL_SOURCE_FLAGS.get(subclass.source)
+        if not flag_key:
+            return True
+        return AppSettings.get_optional_content_flag(flag_key)

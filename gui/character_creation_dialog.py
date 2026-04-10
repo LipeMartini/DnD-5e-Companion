@@ -7,6 +7,7 @@ from models import SpellDatabase
 from models.expertise_rules import get_expertise_choices_for_level
 from .expertise_selection_dialog import ExpertiseSelectionDialog
 from .optional_content_dialog import OptionalContentDialog
+from .ranger_optional_features_dialog import apply_ranger_optional_features
 
 class CharacterCreationDialog(QDialog):
     def __init__(self, parent=None):
@@ -380,12 +381,13 @@ class CharacterCreationDialog(QDialog):
         # Combinar todas as perícias
         self.character.skill_proficiencies = selected_class_skills + selected_subrace_skills + background_skills
         
-        # Adicionar class features do nível 1
+        # Adicionar class features do nível 1 (e opcionais de Tasha's)
         if self.character.character_class:
-            self.character.add_class_features(
+            new_features = self.character.add_class_features(
                 self.character.character_class.name,
                 1
             )
+            apply_ranger_optional_features(self, self.character, new_features)
 
         # Expertise inicial (ex: Rogue nível 1)
         self.handle_initial_expertise()

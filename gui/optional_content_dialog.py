@@ -78,7 +78,7 @@ class OptionalContentDialog(QDialog):
         self._style_checkbox(self.tashas_checkbox)
         box_layout.addWidget(self.tashas_checkbox)
 
-        tashas_hint = QLabel("Inclui magias, estilos e opções adicionais introduzidos em Tasha's.")
+        tashas_hint = QLabel("Inclui magias, estilos, subclasses e outras opções adicionais introduzidas em Tasha's.")
         tashas_hint.setWordWrap(True)
         tashas_hint.setStyleSheet("color: #5D4037; font-size: 11px;")
         box_layout.addWidget(tashas_hint)
@@ -91,7 +91,7 @@ class OptionalContentDialog(QDialog):
         self._style_checkbox(self.xanathar_checkbox)
         box_layout.addWidget(self.xanathar_checkbox)
 
-        xan_hint = QLabel("Adiciona magias, invocações e ferramentas expandidas de Xanathar.")
+        xan_hint = QLabel("Adiciona magias, subclasses e ferramentas expandidas de Xanathar.")
         xan_hint.setWordWrap(True)
         xan_hint.setStyleSheet("color: #5D4037; font-size: 11px;")
         box_layout.addWidget(xan_hint)
